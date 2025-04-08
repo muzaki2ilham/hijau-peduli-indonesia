@@ -3,14 +3,14 @@ import React from "react";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import ProgramCard from "@/components/ProgramCard";
-import { Leaf, Tree, Earth, Calendar, Search, Users, Info } from "lucide-react";
+import { Leaf, TreeDeciduous, Earth, Calendar, Search, Users, Info } from "lucide-react";
 
 const programsList = [
   {
     id: "1",
     title: "Penghijauan Kota",
     description: "Program penanaman pohon dan pengembangan taman kota untuk meningkatkan ruang terbuka hijau dan kualitas udara di perkotaan.",
-    icon: <Tree className="h-10 w-10" />,
+    icon: <TreeDeciduous className="h-10 w-10" />,
     link: "/programs/penghijauan-kota",
   },
   {

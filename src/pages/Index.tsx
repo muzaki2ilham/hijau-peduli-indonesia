@@ -1,11 +1,10 @@
-
 import React from "react";
 import HeroSection from "@/components/HeroSection";
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
 import NewsCard from "@/components/NewsCard";
 import ProgramCard from "@/components/ProgramCard";
-import { Leaf, Tree, Earth, Calendar } from "lucide-react";
+import { Leaf, TreeDeciduous, Earth, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const latestNews = [
@@ -74,7 +73,7 @@ const Index = () => {
                 id="1"
                 title="Penghijauan Kota"
                 description="Program penanaman pohon dan pengembangan taman kota untuk meningkatkan ruang terbuka hijau."
-                icon={<Tree className="h-10 w-10" />}
+                icon={<TreeDeciduous className="h-10 w-10" />}
                 link="/programs/penghijauan-kota"
               />
               <ProgramCard
