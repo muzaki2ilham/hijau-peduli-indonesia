@@ -194,7 +194,7 @@ const Contact = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Anda dapat melaporkan masalah lingkungan melalui menu Layanan Masyarakat > Pengaduan
+                  Anda dapat melaporkan masalah lingkungan melalui menu Layanan Masyarakat {'>'}{'>'} Pengaduan
                   di website ini, mengirim email ke pengaduan@dlh.go.id, atau menghubungi hotline kami di 0800-1234-5678.
                 </p>
               </CardContent>
