@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      complaints: {
+        Row: {
+          attachments: string[] | null
+          complaint_type: string
+          created_at: string
+          description: string
+          email: string
+          id: string
+          location: string
+          name: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          attachments?: string[] | null
+          complaint_type: string
+          created_at?: string
+          description: string
+          email: string
+          id?: string
+          location: string
+          name: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          attachments?: string[] | null
+          complaint_type?: string
+          created_at?: string
+          description?: string
+          email?: string
+          id?: string
+          location?: string
+          name?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -57,6 +96,51 @@ export type Database = {
           score?: number
           total_questions?: number
           user_id?: string
+        }
+        Relationships: []
+      }
+      service_requests: {
+        Row: {
+          address: string
+          attachments: string[] | null
+          created_at: string
+          description: string
+          email: string
+          id: string
+          name: string
+          phone: string
+          request_date: string
+          service_type: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          address: string
+          attachments?: string[] | null
+          created_at?: string
+          description: string
+          email: string
+          id?: string
+          name: string
+          phone: string
+          request_date: string
+          service_type: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          address?: string
+          attachments?: string[] | null
+          created_at?: string
+          description?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string
+          request_date?: string
+          service_type?: string
+          status?: string
+          user_id?: string | null
         }
         Relationships: []
       }

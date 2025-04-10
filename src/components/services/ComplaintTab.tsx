@@ -1,12 +1,81 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FileText, User, Mail, MapPin } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const ComplaintTab = () => {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    location: "",
+    complaint_type: "",
+    description: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name || !formData.email || !formData.location || !formData.complaint_type || !formData.description) {
+      toast({
+        title: "Formulir Tidak Lengkap",
+        description: "Mohon lengkapi semua bidang yang diperlukan.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      const { error } = await supabase.from("complaints").insert([
+        {
+          name: formData.name,
+          email: formData.email,
+          location: formData.location,
+          complaint_type: formData.complaint_type,
+          description: formData.description,
+        }
+      ]);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Pengaduan Terkirim",
+        description: "Pengaduan Anda telah berhasil dikirim. Kami akan meninjau dan menindaklanjuti segera.",
+      });
+      
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        location: "",
+        complaint_type: "",
+        description: "",
+      });
+    } catch (error) {
+      console.error("Error submitting complaint:", error);
+      toast({
+        title: "Terjadi Kesalahan",
+        description: "Gagal mengirim pengaduan. Silakan coba lagi nanti.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -16,7 +85,7 @@ const ComplaintTab = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label htmlFor="name" className="text-sm font-medium">Nama Lengkap</label>
@@ -24,7 +93,14 @@ const ComplaintTab = () => {
                 <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
                   <User className="h-4 w-4" />
                 </span>
-                <Input id="name" placeholder="Masukkan nama lengkap Anda" className="rounded-l-none" />
+                <Input 
+                  id="name" 
+                  placeholder="Masukkan nama lengkap Anda" 
+                  className="rounded-l-none" 
+                  value={formData.name}
+                  onChange={handleChange}
+                  required 
+                />
               </div>
             </div>
             <div className="space-y-2">
@@ -33,7 +109,15 @@ const ComplaintTab = () => {
                 <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
                   <Mail className="h-4 w-4" />
                 </span>
-                <Input id="email" type="email" placeholder="contoh@email.com" className="rounded-l-none" />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="contoh@email.com" 
+                  className="rounded-l-none" 
+                  value={formData.email}
+                  onChange={handleChange}
+                  required 
+                />
               </div>
             </div>
           </div>
@@ -44,26 +128,46 @@ const ComplaintTab = () => {
               <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
                 <MapPin className="h-4 w-4" />
               </span>
-              <Input id="location" placeholder="Alamat lengkap lokasi kejadian" className="rounded-l-none" />
+              <Input 
+                id="location" 
+                placeholder="Alamat lengkap lokasi kejadian" 
+                className="rounded-l-none" 
+                value={formData.location}
+                onChange={handleChange}
+                required 
+              />
             </div>
           </div>
           
           <div className="space-y-2">
-            <label htmlFor="complaint-type" className="text-sm font-medium">Jenis Pengaduan</label>
-            <select id="complaint-type" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
-              <option value="" disabled selected>Pilih jenis pengaduan</option>
-              <option value="trash">Pembuangan Sampah Ilegal</option>
-              <option value="water">Pencemaran Air</option>
-              <option value="air">Polusi Udara</option>
-              <option value="noise">Polusi Suara</option>
-              <option value="forest">Kerusakan Hutan/Taman</option>
-              <option value="other">Lainnya</option>
+            <label htmlFor="complaint_type" className="text-sm font-medium">Jenis Pengaduan</label>
+            <select 
+              id="complaint_type" 
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              value={formData.complaint_type}
+              onChange={handleChange}
+              required
+            >
+              <option value="" disabled>Pilih jenis pengaduan</option>
+              <option value="Pembuangan Sampah Ilegal">Pembuangan Sampah Ilegal</option>
+              <option value="Pencemaran Air">Pencemaran Air</option>
+              <option value="Polusi Udara">Polusi Udara</option>
+              <option value="Polusi Suara">Polusi Suara</option>
+              <option value="Kerusakan Hutan/Taman">Kerusakan Hutan/Taman</option>
+              <option value="Lainnya">Lainnya</option>
             </select>
           </div>
           
           <div className="space-y-2">
             <label htmlFor="description" className="text-sm font-medium">Deskripsi Pengaduan</label>
-            <Textarea id="description" placeholder="Jelaskan secara detail masalah lingkungan yang Anda temui..." rows={5} />
+            <Textarea 
+              id="description" 
+              placeholder="Jelaskan secara detail masalah lingkungan yang Anda temui..." 
+              rows={5} 
+              value={formData.description}
+              onChange={handleChange}
+              required 
+            />
           </div>
           
           <div className="space-y-2">
@@ -74,12 +178,18 @@ const ComplaintTab = () => {
                 <p className="text-sm text-gray-500">Klik atau seret file ke area ini untuk mengunggah</p>
                 <p className="text-xs text-gray-400">JPG, PNG, atau PDF (maks. 5MB)</p>
                 <input type="file" className="hidden" />
-                <Button variant="outline" size="sm" className="mt-2">Pilih File</Button>
+                <Button variant="outline" size="sm" className="mt-2" type="button">Pilih File</Button>
               </div>
             </div>
           </div>
           
-          <Button className="w-full bg-green-600 hover:bg-green-700">Kirim Pengaduan</Button>
+          <Button 
+            className="w-full bg-green-600 hover:bg-green-700" 
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Mengirim..." : "Kirim Pengaduan"}
+          </Button>
         </form>
       </CardContent>
     </Card>
