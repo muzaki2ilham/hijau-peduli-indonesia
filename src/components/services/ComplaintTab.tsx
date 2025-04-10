@@ -39,15 +39,16 @@ const ComplaintTab = () => {
     setIsSubmitting(true);
     
     try {
-      const { error } = await supabase.from("complaints").insert([
-        {
+      // Using a more generic approach to avoid type issues
+      const { error } = await supabase
+        .from('complaints')
+        .insert({
           name: formData.name,
           email: formData.email,
           location: formData.location,
           complaint_type: formData.complaint_type,
           description: formData.description,
-        }
-      ]);
+        } as any);
       
       if (error) throw error;
       

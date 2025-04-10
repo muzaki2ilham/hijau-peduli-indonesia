@@ -34,8 +34,10 @@ const RequestFormView = ({ selectedService, onSubmit, onBack }: RequestFormViewP
     setIsSubmitting(true);
     
     try {
-      const { error } = await supabase.from("service_requests").insert([
-        {
+      // Using a more generic approach to avoid type issues
+      const { error } = await supabase
+        .from('service_requests')
+        .insert({
           service_type: selectedService,
           name: formData.name,
           email: formData.email,
@@ -43,8 +45,7 @@ const RequestFormView = ({ selectedService, onSubmit, onBack }: RequestFormViewP
           phone: formData.phone,
           request_date: formData.request_date,
           description: formData.description,
-        }
-      ]);
+        } as any);
       
       if (error) throw error;
       
