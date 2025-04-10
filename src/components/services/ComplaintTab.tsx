@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 const ComplaintTab = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -18,6 +19,21 @@ const ComplaintTab = () => {
     complaint_type: "",
     description: "",
   });
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.user) {
+        setUser(data.session.user);
+        setFormData(prev => ({
+          ...prev,
+          email: data.session.user.email || "",
+        }));
+      }
+    };
+    
+    getUser();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { id, value } = e.target;
@@ -48,6 +64,9 @@ const ComplaintTab = () => {
           location: formData.location,
           complaint_type: formData.complaint_type,
           description: formData.description,
+          user_id: user?.id || null,
+          // Add recipient email for backend processing
+          recipient_email: "vxsiorbest@gmail.com"
         } as any);
       
       if (error) throw error;
@@ -59,8 +78,8 @@ const ComplaintTab = () => {
       
       // Reset form
       setFormData({
-        name: "",
-        email: "",
+        name: user?.email ? formData.name : "",
+        email: user?.email || "",
         location: "",
         complaint_type: "",
         description: "",
@@ -118,6 +137,7 @@ const ComplaintTab = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required 
+                  readOnly={!!user?.email}
                 />
               </div>
             </div>
