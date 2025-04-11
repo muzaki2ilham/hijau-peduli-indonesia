@@ -10,9 +10,10 @@ import { supabase } from "@/integrations/supabase/client";
 interface RequestFormViewProps {
   selectedService: string;
   onSubmit: () => void;
+  onBack: () => void;
 }
 
-const RequestFormView: React.FC<RequestFormViewProps> = ({ selectedService, onSubmit }) => {
+const RequestFormView: React.FC<RequestFormViewProps> = ({ selectedService, onSubmit, onBack }) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -73,6 +74,7 @@ const RequestFormView: React.FC<RequestFormViewProps> = ({ selectedService, onSu
         description: "Permohonan Anda telah berhasil dikirim. Kami akan memproses dan menghubungi Anda segera.",
       });
       
+      // Call the onSubmit callback without passing the event
       onSubmit();
     } catch (error) {
       console.error("Error submitting request:", error);
@@ -173,7 +175,7 @@ const RequestFormView: React.FC<RequestFormViewProps> = ({ selectedService, onSu
             <Button 
               type="button" 
               variant="outline"
-              onClick={onSubmit}
+              onClick={onBack}
             >
               Batal
             </Button>

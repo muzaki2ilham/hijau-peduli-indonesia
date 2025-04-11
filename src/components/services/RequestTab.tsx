@@ -14,8 +14,8 @@ const RequestTab = () => {
     setActiveRequestTab("form");
   };
   
-  const handleSubmitRequest = (e: React.FormEvent) => {
-    e.preventDefault();
+  // Modified the function to not accept any parameters
+  const handleSubmitRequest = () => {
     toast({
       title: "Permohonan Terkirim",
       description: `Permohonan ${selectedService} Anda telah berhasil dikirim. Kami akan menghubungi Anda segera.`,
