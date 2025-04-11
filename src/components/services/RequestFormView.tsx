@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface RequestFormViewProps {
   selectedService: string;
-  onSubmit: (e: React.FormEvent) => void; // Updated type to match RequestTab
+  onSubmit: (e: React.FormEvent) => void;
   onBack: () => void;
 }
 
@@ -51,7 +51,19 @@ const RequestFormView: React.FC<RequestFormViewProps> = ({ selectedService, onSu
     setIsSubmitting(true);
     
     try {
-      // Using a more generic approach to avoid type issues
+      // Make sure all required fields are filled
+      if (!formData.name || !formData.email || !formData.phone || 
+          !formData.address || !formData.request_date || !formData.description) {
+        toast({
+          title: "Formulir Tidak Lengkap",
+          description: "Mohon lengkapi semua bidang yang diperlukan.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Insert the data into Supabase
       const { error } = await supabase
         .from('service_requests')
         .insert({
@@ -65,22 +77,30 @@ const RequestFormView: React.FC<RequestFormViewProps> = ({ selectedService, onSu
           user_id: user?.id || null,
           // Add recipient email for backend processing
           recipient_email: "vxsiorbest@gmail.com"
-        } as any);
+        });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
       
-      toast({
-        title: "Permohonan Terkirim",
-        description: "Permohonan Anda telah berhasil dikirim. Kami akan memproses dan menghubungi Anda segera.",
-      });
-      
-      // Pass the event to the parent component's onSubmit
+      // Call the parent's onSubmit function
       onSubmit(e);
-    } catch (error) {
+      
+      // Reset form data
+      setFormData({
+        name: "",
+        email: user?.email || "",
+        phone: "",
+        address: "",
+        request_date: "",
+        description: "",
+      });
+    } catch (error: any) {
       console.error("Error submitting request:", error);
       toast({
         title: "Terjadi Kesalahan",
-        description: "Gagal mengirim permohonan. Silakan coba lagi nanti.",
+        description: error.message || "Gagal mengirim permohonan. Silakan coba lagi nanti.",
         variant: "destructive",
       });
     } finally {

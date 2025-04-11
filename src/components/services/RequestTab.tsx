@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import RequestListView from "./RequestListView";
 import RequestFormView from "./RequestFormView";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const RequestTab = () => {
   const [activeRequestTab, setActiveRequestTab] = useState<string>("list");
@@ -14,16 +15,29 @@ const RequestTab = () => {
     setActiveRequestTab("form");
   };
   
-  // Modify to accept form event parameter to match expected type
-  const handleSubmitRequest = (e: React.FormEvent) => {
+  const handleSubmitRequest = async (e: React.FormEvent) => {
     // Prevent default form submission
     if (e) e.preventDefault();
     
-    toast({
-      title: "Permohonan Terkirim",
-      description: `Permohonan ${selectedService} Anda telah berhasil dikirim. Kami akan menghubungi Anda segera.`,
-    });
-    setActiveRequestTab("list");
+    try {
+      // Will be handled by the RequestFormView component now
+      // The actual submission to Supabase happens there
+      
+      toast({
+        title: "Permohonan Terkirim",
+        description: `Permohonan ${selectedService} Anda telah berhasil dikirim. Kami akan menghubungi Anda segera.`,
+      });
+      
+      // Return to list view after successful submission
+      setActiveRequestTab("list");
+    } catch (error) {
+      console.error("Error in handleSubmitRequest:", error);
+      toast({
+        title: "Terjadi Kesalahan",
+        description: "Gagal mengirim permohonan. Silakan coba lagi nanti.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleBackToList = () => {
