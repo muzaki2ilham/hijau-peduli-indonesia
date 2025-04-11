@@ -60,9 +60,8 @@ export const useComplaintForm = () => {
           location: formData.location,
           complaint_type: formData.complaint_type,
           description: formData.description,
-          user_id: user?.id || null,
-          // Add recipient email for backend processing
-          recipient_email: "vxsiorbest@gmail.com"
+          user_id: user?.id || null
+          // Removed recipient_email field since the column doesn't exist
         } as any);
       
       if (error) throw error;

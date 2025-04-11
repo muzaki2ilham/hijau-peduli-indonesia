@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -74,9 +73,7 @@ const RequestFormView: React.FC<RequestFormViewProps> = ({ selectedService, onSu
           phone: formData.phone,
           request_date: formData.request_date,
           description: formData.description,
-          user_id: user?.id || null,
-          // Add recipient email for backend processing
-          recipient_email: "vxsiorbest@gmail.com"
+          user_id: user?.id || null
         });
       
       if (error) {
