@@ -1,17 +1,17 @@
-
 import { TreeDeciduous, Leaf, Recycle, Info, BookOpen, Image, Phone } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-green-50 to-green-100">
+    <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100">
       {/* Hero Section */}
-      <div className="relative h-[40vh] md:h-[50vh] bg-gradient-to-r from-green-600 to-green-400 flex items-center justify-center">
+      <div className="relative">
         <div className="text-center p-6 z-10">
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
             Hijau Peduli Indonesia
@@ -29,6 +29,14 @@ const Index = () => {
           </div>
         </div>
         <div className="absolute inset-0 bg-black/20"></div>
+        <div className="absolute top-4 right-4 md:top-8 md:right-8">
+          <Button 
+            onClick={() => navigate('/auth')}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            Masuk/Daftar
+          </Button>
+        </div>
       </div>
 
       {/* Menu Cards */}

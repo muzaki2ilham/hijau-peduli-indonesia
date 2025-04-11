@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface RequestFormViewProps {
   selectedService: string;
-  onSubmit: () => void;
+  onSubmit: (e: React.FormEvent) => void; // Updated type to match RequestTab
   onBack: () => void;
 }
 
@@ -74,8 +74,8 @@ const RequestFormView: React.FC<RequestFormViewProps> = ({ selectedService, onSu
         description: "Permohonan Anda telah berhasil dikirim. Kami akan memproses dan menghubungi Anda segera.",
       });
       
-      // Call the onSubmit callback without passing the event
-      onSubmit();
+      // Pass the event to the parent component's onSubmit
+      onSubmit(e);
     } catch (error) {
       console.error("Error submitting request:", error);
       toast({

@@ -17,6 +17,7 @@ import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import MobileNavigation from "./components/MobileNavigation";
+import Navigation from "./components/Navigation";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const AppContent = () => {
   
   return (
     <>
+      <Navigation />
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/programs" element={<Programs />} />
