@@ -51,8 +51,8 @@ export const useComplaintForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Using a more generic approach to avoid type issues
-      const { error } = await supabase
+      // Insert the complaint into the database
+      const { data, error } = await supabase
         .from('complaints')
         .insert({
           name: formData.name,
@@ -61,10 +61,34 @@ export const useComplaintForm = () => {
           complaint_type: formData.complaint_type,
           description: formData.description,
           user_id: user?.id || null
-          // Removed recipient_email field since the column doesn't exist
-        } as any);
+        })
+        .select();
       
       if (error) throw error;
+      
+      // Send email notification
+      try {
+        const response = await fetch('https://odenbatdqohfxgjibkff.supabase.co/functions/v1/send-notification', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            record: {
+              ...formData,
+              user_id: user?.id || null
+            },
+            type: 'complaint'
+          })
+        });
+        
+        if (!response.ok) {
+          console.error('Email notification failed:', await response.text());
+        }
+      } catch (notificationError) {
+        console.error('Error sending notification:', notificationError);
+        // We don't throw here so the user still gets confirmation even if the email fails
+      }
       
       toast({
         title: "Pengaduan Terkirim",

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -63,7 +64,7 @@ const RequestFormView: React.FC<RequestFormViewProps> = ({ selectedService, onSu
       }
 
       // Insert the data into Supabase
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('service_requests')
         .insert({
           service_type: selectedService,
@@ -74,11 +75,37 @@ const RequestFormView: React.FC<RequestFormViewProps> = ({ selectedService, onSu
           request_date: formData.request_date,
           description: formData.description,
           user_id: user?.id || null
-        });
+        })
+        .select();
       
       if (error) {
         console.error("Supabase error:", error);
         throw error;
+      }
+      
+      // Send email notification
+      try {
+        const response = await fetch('https://odenbatdqohfxgjibkff.supabase.co/functions/v1/send-notification', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            record: {
+              ...formData,
+              service_type: selectedService,
+              user_id: user?.id || null
+            },
+            type: 'service_request'
+          })
+        });
+        
+        if (!response.ok) {
+          console.error('Email notification failed:', await response.text());
+        }
+      } catch (notificationError) {
+        console.error('Error sending notification:', notificationError);
+        // We don't throw here so the user still gets confirmation even if the email fails
       }
       
       // Call the parent's onSubmit function
