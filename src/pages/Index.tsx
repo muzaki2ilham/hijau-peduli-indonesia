@@ -1,4 +1,3 @@
-
 import { TreeDeciduous, Leaf, Recycle, Info, BookOpen, Image, Phone } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,7 +15,7 @@ const Index = () => {
         <div className="absolute inset-0 bg-black/40 z-0"></div>
         <div className="relative z-10 h-full flex flex-col items-center justify-center p-6 text-center">
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
-            Dinas Lingkungan Hidup Kota Tegal
+            Tegal Asri
           </h1>
           <p className="text-lg md:text-xl text-white max-w-xl mx-auto mb-8">
             Bersama menjaga lingkungan untuk masa depan yang lebih baik

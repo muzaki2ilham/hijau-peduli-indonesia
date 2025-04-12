@@ -38,7 +38,7 @@ const Navigation: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 flex justify-between items-center">
         <div>
           <Link to="/" className="text-green-800 font-bold text-xl">
-            Dinas Lingkungan Hidup Kota Tegal
+            Tegal Asri
           </Link>
         </div>
         <div className="flex items-center space-x-4">
