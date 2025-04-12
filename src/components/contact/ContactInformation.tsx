@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
 
@@ -6,7 +5,7 @@ const ContactInformation = () => {
   return (
     <Card className="bg-white">
       <CardHeader>
-        <CardTitle className="text-xl text-green-800">Informasi Kontak</CardTitle>
+        <CardTitle className="text-xl text-green-800">Informasi Kontak Dinas Lingkungan Hidup Kota Tegal</CardTitle>
         <CardDescription>
           Berikut adalah berbagai cara untuk menghubungi kami.
         </CardDescription>
@@ -18,7 +17,7 @@ const ContactInformation = () => {
           </div>
           <div>
             <h3 className="font-medium">Alamat</h3>
-            <p className="text-gray-600">Jl. Lingkungan Hidup No. 123, Kota Jakarta, Indonesia 12345</p>
+            <p className="text-gray-600">Jl. Nila No.11, Tegalsari, Kec. Tegal Bar., Kota Tegal, Jawa Tengah 52111</p>
           </div>
         </div>
         

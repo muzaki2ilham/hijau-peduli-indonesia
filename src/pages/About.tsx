@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Phone, Mail, Calendar, Clock, Users, Award, Landmark, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -6,12 +5,12 @@ import { Button } from "@/components/ui/button";
 
 const About = () => {
   const visionMission = {
-    vision: "Terwujudnya lingkungan hidup yang bersih, sehat, dan berkelanjutan untuk kesejahteraan masyarakat.",
+    vision: "Terwujudnya lingkungan hidup yang bersih, sehat, dan berkelanjutan untuk kesejahteraan masyarakat Kota Tegal.",
     mission: [
-      "Meningkatkan kualitas lingkungan hidup melalui pengendalian pencemaran dan kerusakan lingkungan.",
-      "Memperkuat upaya pelestarian fungsi lingkungan hidup dan pengelolaan sumber daya alam.",
-      "Meningkatkan kesadaran dan partisipasi masyarakat dalam perlindungan dan pengelolaan lingkungan hidup.",
-      "Memperkuat tata kelola yang baik dalam perlindungan dan pengelolaan lingkungan hidup.",
+      "Meningkatkan kualitas lingkungan hidup melalui pengendalian pencemaran dan kerusakan lingkungan di Kota Tegal.",
+      "Memperkuat upaya pelestarian fungsi lingkungan hidup dan pengelolaan sumber daya alam di Kota Tegal.",
+      "Meningkatkan kesadaran dan partisipasi masyarakat dalam perlindungan dan pengelolaan lingkungan hidup di Kota Tegal.",
+      "Memperkuat tata kelola yang baik dalam perlindungan dan pengelolaan lingkungan hidup di Kota Tegal.",
     ],
   };
 
@@ -65,25 +64,24 @@ const About = () => {
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-green-800 mb-4">Tentang Kami</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-green-800 mb-4">Tentang Dinas Lingkungan Hidup Kota Tegal</h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Mengenal lebih dekat Dinas Lingkungan Hidup, visi misi, dan program-program kami untuk menjaga kelestarian lingkungan.
+            Mengenal lebih dekat Dinas Lingkungan Hidup Kota Tegal, visi misi, dan program-program kami untuk menjaga kelestarian lingkungan di Kota Tegal.
           </p>
         </div>
 
-        {/* About Section */}
         <div className="bg-white rounded-xl overflow-hidden shadow-md mb-8">
           <div className="md:flex">
             <div className="md:w-1/2 bg-green-600 text-white p-8">
-              <h2 className="text-2xl font-bold mb-4">Dinas Lingkungan Hidup</h2>
+              <h2 className="text-2xl font-bold mb-4">Dinas Lingkungan Hidup Kota Tegal</h2>
               <p className="mb-6">
-                Dinas Lingkungan Hidup adalah lembaga pemerintah yang bertanggung jawab untuk merumuskan kebijakan 
+                Dinas Lingkungan Hidup Kota Tegal adalah lembaga pemerintah yang bertanggung jawab untuk merumuskan kebijakan 
                 teknis, menyelenggarakan urusan pemerintahan dan pelayanan umum, serta melakukan pembinaan dan 
-                pelaksanaan tugas di bidang lingkungan hidup.
+                pelaksanaan tugas di bidang lingkungan hidup di Kota Tegal.
               </p>
               <p>
                 Kami bekerja untuk memastikan lingkungan yang bersih, sehat, dan berkelanjutan melalui berbagai 
-                program pengelolaan lingkungan, edukasi masyarakat, dan penegakan regulasi lingkungan hidup.
+                program pengelolaan lingkungan, edukasi masyarakat, dan penegakan regulasi lingkungan hidup di Kota Tegal.
               </p>
             </div>
             <div className="md:w-1/2 p-8">
@@ -106,7 +104,6 @@ const About = () => {
           </div>
         </div>
 
-        {/* Department Structure */}
         <div className="mb-12">
           <h2 className="text-2xl font-semibold text-green-800 mb-4 flex items-center">
             <Users className="mr-2 h-6 w-6" /> Struktur Organisasi
@@ -130,7 +127,6 @@ const About = () => {
           </div>
         </div>
 
-        {/* Achievements */}
         <div className="mb-12">
           <h2 className="text-2xl font-semibold text-green-800 mb-4 flex items-center">
             <Award className="mr-2 h-6 w-6" /> Prestasi & Penghargaan
@@ -152,7 +148,6 @@ const About = () => {
           </div>
         </div>
 
-        {/* Legal Basis */}
         <div className="mb-12">
           <h2 className="text-2xl font-semibold text-green-800 mb-4 flex items-center">
             <BookOpen className="mr-2 h-6 w-6" /> Dasar Hukum
@@ -181,7 +176,6 @@ const About = () => {
           </Card>
         </div>
 
-        {/* Contact Info */}
         <div>
           <h2 className="text-2xl font-semibold text-green-800 mb-4 flex items-center">
             <Phone className="mr-2 h-6 w-6" /> Informasi Kontak
@@ -193,7 +187,7 @@ const About = () => {
                   <MapPin className="h-5 w-5 text-green-600 mr-2 mt-0.5" />
                   <div>
                     <h3 className="font-medium text-green-800">Alamat</h3>
-                    <p className="text-gray-600">Jl. Lingkungan Hidup No. 123, Kota Jakarta, Indonesia 12345</p>
+                    <p className="text-gray-600">Jl. Nila No.11, Tegalsari, Kec. Tegal Bar., Kota Tegal, Jawa Tengah 52111</p>
                   </div>
                 </div>
                 <div className="flex items-start">
