@@ -2,18 +2,18 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ComplaintFormData } from "./types";
-import { submitComplaint } from "@/services/complaintService";
+import { ServiceRequestData, submitServiceRequest } from "@/services/requestService";
 
-export const useComplaintForm = () => {
+export const useRequestForm = (selectedService: string, onSuccess: () => void) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [formData, setFormData] = useState<ComplaintFormData>({
+  const [formData, setFormData] = useState<Omit<ServiceRequestData, 'service_type'>>({
     name: "",
     email: "",
-    location: "",
-    complaint_type: "",
+    phone: "",
+    address: "",
+    request_date: "",
     description: "",
   });
 
@@ -32,13 +32,14 @@ export const useComplaintForm = () => {
     getUser();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
   };
 
   const validateForm = (): boolean => {
-    if (!formData.name || !formData.email || !formData.location || !formData.complaint_type || !formData.description) {
+    if (!formData.name || !formData.email || !formData.phone || 
+        !formData.address || !formData.request_date || !formData.description) {
       toast({
         title: "Formulir Tidak Lengkap",
         description: "Mohon lengkapi semua bidang yang diperlukan.",
@@ -51,10 +52,11 @@ export const useComplaintForm = () => {
 
   const resetForm = () => {
     setFormData({
-      name: user?.email ? formData.name : "",
+      name: "",
       email: user?.email || "",
-      location: "",
-      complaint_type: "",
+      phone: "",
+      address: "",
+      request_date: "",
       description: "",
     });
   };
@@ -66,14 +68,18 @@ export const useComplaintForm = () => {
     
     setIsSubmitting(true);
     
-    const result = await submitComplaint(formData, user?.id);
+    const result = await submitServiceRequest(
+      { ...formData, service_type: selectedService },
+      user?.id
+    );
     
     if (result.success) {
       toast({
-        title: "Pengaduan Terkirim",
-        description: "Pengaduan Anda telah berhasil dikirim dan sedang diproses. Kami akan meninjau dan menindaklanjuti segera.",
+        title: "Permohonan Terkirim",
+        description: `Permohonan ${selectedService} Anda telah berhasil dikirim. Kami akan menghubungi Anda segera.`,
       });
       resetForm();
+      onSuccess();
     } else {
       toast({
         title: "Terjadi Kesalahan",

@@ -1,11 +1,10 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { useRequestForm } from "./useRequestForm";
 
 interface RequestFormViewProps {
   selectedService: string;
@@ -13,125 +12,18 @@ interface RequestFormViewProps {
   onBack: () => void;
 }
 
-const RequestFormView: React.FC<RequestFormViewProps> = ({ selectedService, onSubmit, onBack }) => {
-  const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
-    request_date: "",
-    description: "",
-  });
-
-  useEffect(() => {
-    const getUser = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session?.user) {
-        setUser(data.session.user);
-        setFormData(prev => ({
-          ...prev,
-          email: data.session.user.email || "",
-        }));
-      }
-    };
-    
-    getUser();
-  }, []);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    try {
-      // Make sure all required fields are filled
-      if (!formData.name || !formData.email || !formData.phone || 
-          !formData.address || !formData.request_date || !formData.description) {
-        toast({
-          title: "Formulir Tidak Lengkap",
-          description: "Mohon lengkapi semua bidang yang diperlukan.",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Insert the data into Supabase with status set to "in progress"
-      const { data, error } = await supabase
-        .from('service_requests')
-        .insert({
-          service_type: selectedService,
-          name: formData.name,
-          email: formData.email,
-          address: formData.address,
-          phone: formData.phone,
-          request_date: formData.request_date,
-          description: formData.description,
-          user_id: user?.id || null,
-          status: "in progress" // Changed from default "pending" to "in progress"
-        })
-        .select();
-      
-      if (error) {
-        console.error("Supabase error:", error);
-        throw error;
-      }
-      
-      // Send email notification
-      try {
-        const response = await fetch('https://odenbatdqohfxgjibkff.supabase.co/functions/v1/send-notification', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            record: {
-              ...formData,
-              service_type: selectedService,
-              user_id: user?.id || null,
-              status: "in progress" // Include the updated status in the notification
-            },
-            type: 'service_request'
-          })
-        });
-        
-        if (!response.ok) {
-          console.error('Email notification failed:', await response.text());
-        }
-      } catch (notificationError) {
-        console.error('Error sending notification:', notificationError);
-      }
-      
-      // Call the parent's onSubmit function
-      onSubmit(e);
-      
-      // Reset form data
-      setFormData({
-        name: "",
-        email: user?.email || "",
-        phone: "",
-        address: "",
-        request_date: "",
-        description: "",
-      });
-    } catch (error: any) {
-      console.error("Error submitting request:", error);
-      toast({
-        title: "Terjadi Kesalahan",
-        description: error.message || "Gagal mengirim permohonan. Silakan coba lagi nanti.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+const RequestFormView: React.FC<RequestFormViewProps> = ({ 
+  selectedService, 
+  onSubmit, 
+  onBack 
+}) => {
+  const { 
+    formData, 
+    handleChange, 
+    handleSubmit, 
+    isSubmitting, 
+    user 
+  } = useRequestForm(selectedService, () => onSubmit(new Event('submit') as unknown as React.FormEvent));
 
   return (
     <Card>
