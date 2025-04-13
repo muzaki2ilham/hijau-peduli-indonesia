@@ -51,7 +51,7 @@ export const useComplaintForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Insert the complaint into the database
+      // Set initial status to "in progress" instead of pending
       const { data, error } = await supabase
         .from('complaints')
         .insert({
@@ -60,7 +60,8 @@ export const useComplaintForm = () => {
           location: formData.location,
           complaint_type: formData.complaint_type,
           description: formData.description,
-          user_id: user?.id || null
+          user_id: user?.id || null,
+          status: "in progress" // Changed from default "pending" to "in progress"
         })
         .select();
       
@@ -76,7 +77,8 @@ export const useComplaintForm = () => {
           body: JSON.stringify({
             record: {
               ...formData,
-              user_id: user?.id || null
+              user_id: user?.id || null,
+              status: "in progress" // Include the status in the notification
             },
             type: 'complaint'
           })
@@ -87,12 +89,11 @@ export const useComplaintForm = () => {
         }
       } catch (notificationError) {
         console.error('Error sending notification:', notificationError);
-        // We don't throw here so the user still gets confirmation even if the email fails
       }
       
       toast({
         title: "Pengaduan Terkirim",
-        description: "Pengaduan Anda telah berhasil dikirim. Kami akan meninjau dan menindaklanjuti segera.",
+        description: "Pengaduan Anda telah berhasil dikirim dan sedang diproses. Kami akan meninjau dan menindaklanjuti segera.",
       });
       
       // Reset form

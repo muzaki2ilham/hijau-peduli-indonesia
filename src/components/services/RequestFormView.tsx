@@ -63,7 +63,7 @@ const RequestFormView: React.FC<RequestFormViewProps> = ({ selectedService, onSu
         return;
       }
 
-      // Insert the data into Supabase
+      // Insert the data into Supabase with status set to "in progress"
       const { data, error } = await supabase
         .from('service_requests')
         .insert({
@@ -74,7 +74,8 @@ const RequestFormView: React.FC<RequestFormViewProps> = ({ selectedService, onSu
           phone: formData.phone,
           request_date: formData.request_date,
           description: formData.description,
-          user_id: user?.id || null
+          user_id: user?.id || null,
+          status: "in progress" // Changed from default "pending" to "in progress"
         })
         .select();
       
@@ -94,7 +95,8 @@ const RequestFormView: React.FC<RequestFormViewProps> = ({ selectedService, onSu
             record: {
               ...formData,
               service_type: selectedService,
-              user_id: user?.id || null
+              user_id: user?.id || null,
+              status: "in progress" // Include the updated status in the notification
             },
             type: 'service_request'
           })
@@ -105,7 +107,6 @@ const RequestFormView: React.FC<RequestFormViewProps> = ({ selectedService, onSu
         }
       } catch (notificationError) {
         console.error('Error sending notification:', notificationError);
-        // We don't throw here so the user still gets confirmation even if the email fails
       }
       
       // Call the parent's onSubmit function

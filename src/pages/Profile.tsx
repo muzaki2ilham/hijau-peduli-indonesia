@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -129,6 +128,19 @@ const Profile = () => {
     }
   };
 
+  const getStatusDisplay = (status: string) => {
+    switch(status) {
+      case 'pending':
+        return { text: 'Menunggu', bgColor: 'bg-yellow-100 text-yellow-800' };
+      case 'in progress':
+        return { text: 'Diproses', bgColor: 'bg-blue-100 text-blue-800' };
+      case 'completed':
+        return { text: 'Selesai', bgColor: 'bg-green-100 text-green-800' };
+      default:
+        return { text: status, bgColor: 'bg-gray-100 text-gray-800' };
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 flex items-center justify-center">
@@ -228,28 +240,21 @@ const Profile = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {complaints.map((complaint) => (
-                          <TableRow key={complaint.id}>
-                            <TableCell>{formatDate(complaint.created_at)}</TableCell>
-                            <TableCell>{complaint.complaint_type}</TableCell>
-                            <TableCell>{complaint.location}</TableCell>
-                            <TableCell>
-                              <span className={`px-2 py-1 rounded-full text-xs ${
-                                complaint.status === 'pending' 
-                                  ? 'bg-yellow-100 text-yellow-800' 
-                                  : complaint.status === 'in progress' 
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-green-100 text-green-800'
-                              }`}>
-                                {complaint.status === 'pending' 
-                                  ? 'Menunggu' 
-                                  : complaint.status === 'in progress'
-                                  ? 'Diproses'
-                                  : 'Selesai'}
-                              </span>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        {complaints.map((complaint) => {
+                          const status = getStatusDisplay(complaint.status);
+                          return (
+                            <TableRow key={complaint.id}>
+                              <TableCell>{formatDate(complaint.created_at)}</TableCell>
+                              <TableCell>{complaint.complaint_type}</TableCell>
+                              <TableCell>{complaint.location}</TableCell>
+                              <TableCell>
+                                <span className={`px-2 py-1 rounded-full text-xs ${status.bgColor}`}>
+                                  {status.text}
+                                </span>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   </div>
@@ -291,28 +296,21 @@ const Profile = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {serviceRequests.map((request) => (
-                          <TableRow key={request.id}>
-                            <TableCell>{formatDate(request.created_at)}</TableCell>
-                            <TableCell>{formatDate(request.request_date)}</TableCell>
-                            <TableCell>{request.service_type}</TableCell>
-                            <TableCell>
-                              <span className={`px-2 py-1 rounded-full text-xs ${
-                                request.status === 'pending' 
-                                  ? 'bg-yellow-100 text-yellow-800' 
-                                  : request.status === 'in progress' 
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-green-100 text-green-800'
-                              }`}>
-                                {request.status === 'pending' 
-                                  ? 'Menunggu' 
-                                  : request.status === 'in progress'
-                                  ? 'Diproses'
-                                  : 'Selesai'}
-                              </span>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        {serviceRequests.map((request) => {
+                          const status = getStatusDisplay(request.status);
+                          return (
+                            <TableRow key={request.id}>
+                              <TableCell>{formatDate(request.created_at)}</TableCell>
+                              <TableCell>{formatDate(request.request_date)}</TableCell>
+                              <TableCell>{request.service_type}</TableCell>
+                              <TableCell>
+                                <span className={`px-2 py-1 rounded-full text-xs ${status.bgColor}`}>
+                                  {status.text}
+                                </span>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   </div>
