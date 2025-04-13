@@ -5,6 +5,7 @@ import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/com
 import { Clock, User, Calendar, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BlogPost } from "./FeaturedPost";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 interface BlogPostCardProps {
   post: BlogPost;
@@ -12,14 +13,16 @@ interface BlogPostCardProps {
 
 const BlogPostCard: React.FC<BlogPostCardProps> = ({ post }) => {
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow group">
       <div className="md:flex">
         <div className="md:w-1/3">
-          <img
-            src={post.imageUrl}
-            alt={post.title}
-            className="h-40 w-full object-cover md:h-full"
-          />
+          <AspectRatio ratio={4/3} className="h-full">
+            <img
+              src={post.imageUrl}
+              alt={post.title}
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+          </AspectRatio>
         </div>
         <div className="p-4 md:w-2/3">
           <CardHeader className="p-0 pb-2">

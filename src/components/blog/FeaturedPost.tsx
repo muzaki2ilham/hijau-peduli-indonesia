@@ -3,6 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Clock, User, Calendar } from "lucide-react";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 export interface BlogPost {
   id: number;
@@ -25,14 +26,16 @@ const FeaturedPost: React.FC<FeaturedPostProps> = ({ post }) => {
       <h2 className="text-xl font-semibold text-green-800 mb-4 flex items-center">
         <BookOpen className="mr-2 h-5 w-5" /> Artikel Unggulan
       </h2>
-      <div className="bg-white rounded-xl overflow-hidden shadow-md">
+      <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow">
         <div className="md:flex">
           <div className="md:w-1/2">
-            <img
-              src={post.imageUrl}
-              alt={post.title}
-              className="h-full w-full object-cover"
-            />
+            <AspectRatio ratio={16/9} className="h-full">
+              <img
+                src={post.imageUrl}
+                alt={post.title}
+                className="h-full w-full object-cover"
+              />
+            </AspectRatio>
           </div>
           <div className="p-6 md:w-1/2">
             <div className="flex items-center mb-2">

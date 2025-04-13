@@ -9,7 +9,7 @@ export const featuredPost: BlogPost = {
   author: "Dr. Surya Wijaya",
   date: "10 April 2025",
   readTime: "8 menit",
-  imageUrl: "https://via.placeholder.com/800x400",
+  imageUrl: "https://images.unsplash.com/photo-1523712999610-f77fbcfc3843?w=1200&auto=format",
 };
 
 export const blogPosts: BlogPost[] = [
@@ -21,7 +21,7 @@ export const blogPosts: BlogPost[] = [
     author: "Irene Kusuma",
     date: "5 April 2025",
     readTime: "6 menit",
-    imageUrl: "https://via.placeholder.com/300x200",
+    imageUrl: "https://images.unsplash.com/photo-1518877593221-1f28583780b4?w=800&auto=format",
   },
   {
     id: 3,
@@ -31,7 +31,7 @@ export const blogPosts: BlogPost[] = [
     author: "Budi Santoso",
     date: "28 Maret 2025",
     readTime: "10 menit",
-    imageUrl: "https://via.placeholder.com/300x200",
+    imageUrl: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800&auto=format",
   },
   {
     id: 4,
@@ -41,7 +41,7 @@ export const blogPosts: BlogPost[] = [
     author: "Dr. Rahmat Hidayat",
     date: "20 Maret 2025",
     readTime: "7 menit",
-    imageUrl: "https://via.placeholder.com/300x200",
+    imageUrl: "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=800&auto=format",
   },
   {
     id: 5,
@@ -51,7 +51,7 @@ export const blogPosts: BlogPost[] = [
     author: "Rina Mardiana",
     date: "15 Maret 2025",
     readTime: "9 menit",
-    imageUrl: "https://via.placeholder.com/300x200",
+    imageUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&auto=format",
   },
   {
     id: 6,
@@ -61,7 +61,7 @@ export const blogPosts: BlogPost[] = [
     author: "Andi Pratama",
     date: "8 Maret 2025",
     readTime: "5 menit",
-    imageUrl: "https://via.placeholder.com/300x200",
+    imageUrl: "https://images.unsplash.com/photo-1523712999610-f77fbcfc3843?w=800&auto=format",
   },
 ];
 
