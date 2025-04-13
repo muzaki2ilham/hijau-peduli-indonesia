@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,17 +10,29 @@ interface ComplaintFormProps {
   formData: ComplaintFormData;
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   handleSubmit: (e: React.FormEvent) => void;
+  handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isSubmitting: boolean;
   isUserEmailReadOnly: boolean;
+  selectedFileName: string | null;
 }
 
 const ComplaintForm: React.FC<ComplaintFormProps> = ({
   formData,
   handleChange,
   handleSubmit,
+  handleFileChange,
   isSubmitting,
-  isUserEmailReadOnly
+  isUserEmailReadOnly,
+  selectedFileName
 }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -110,13 +122,29 @@ const ComplaintForm: React.FC<ComplaintFormProps> = ({
       
       <div className="space-y-2">
         <label htmlFor="file" className="text-sm font-medium">Lampiran Foto/Dokumen (opsional)</label>
-        <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md p-6 bg-gray-50">
+        <div 
+          className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md p-6 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+          onClick={triggerFileInput}
+        >
           <div className="text-center">
             <FileText className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">Klik atau seret file ke area ini untuk mengunggah</p>
+            <p className="text-sm text-gray-500">
+              {selectedFileName 
+                ? `File terpilih: ${selectedFileName}` 
+                : "Klik atau seret file ke area ini untuk mengunggah"}
+            </p>
             <p className="text-xs text-gray-400">JPG, PNG, atau PDF (maks. 5MB)</p>
-            <input type="file" className="hidden" />
-            <Button variant="outline" size="sm" className="mt-2" type="button">Pilih File</Button>
+            <input 
+              ref={fileInputRef}
+              type="file" 
+              id="file"
+              className="hidden" 
+              onChange={handleFileChange}
+              accept=".jpg,.jpeg,.png,.pdf"
+            />
+            <Button variant="outline" size="sm" className="mt-2" type="button">
+              {selectedFileName ? "Ubah File" : "Pilih File"}
+            </Button>
           </div>
         </div>
       </div>

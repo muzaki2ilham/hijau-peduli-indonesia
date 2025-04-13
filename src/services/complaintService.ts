@@ -10,9 +10,37 @@ export interface SubmissionResponse {
 
 export const submitComplaint = async (
   formData: ComplaintFormData,
-  userId: string | null
+  userId: string | null,
+  file: File | null
 ): Promise<SubmissionResponse> => {
   try {
+    let fileUrl: string | null = null;
+    
+    // Upload file if provided
+    if (file) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const filePath = `${userId || 'anonymous'}/${fileName}`;
+      
+      // Upload file to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase
+        .storage
+        .from('complaints')
+        .upload(filePath, file);
+      
+      if (uploadError) {
+        console.error("Error uploading file:", uploadError);
+      } else if (uploadData) {
+        // Get public URL
+        const { data: urlData } = supabase
+          .storage
+          .from('complaints')
+          .getPublicUrl(filePath);
+        
+        fileUrl = urlData.publicUrl;
+      }
+    }
+    
     // Insert complaint into database
     const { data, error } = await supabase
       .from('complaints')
@@ -23,7 +51,8 @@ export const submitComplaint = async (
         complaint_type: formData.complaint_type,
         description: formData.description,
         user_id: userId || null,
-        status: "in progress"
+        status: "in progress",
+        attachments: fileUrl ? [fileUrl] : null
       })
       .select();
     
@@ -40,7 +69,8 @@ export const submitComplaint = async (
           record: {
             ...formData,
             user_id: userId || null,
-            status: "in progress"
+            status: "in progress",
+            attachment: fileUrl
           },
           type: 'complaint'
         })
