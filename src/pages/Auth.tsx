@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,15 +17,12 @@ const Auth = () => {
   const [isAdminLogin, setIsAdminLogin] = useState(false);
 
   const checkUserRole = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .eq('role', 'admin')
-      .single();
-
-    if (error) return false;
-    return !!data;
+    const { data: roleData } = await supabase
+      .rpc('user_has_role', {
+        _user_id: userId,
+        _role: 'admin'
+      });
+    return !!roleData;
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
