@@ -1,20 +1,69 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Key, UserPlus, LogIn, ShieldCheck } from "lucide-react";
+import { Mail, Key, UserPlus, LogIn, ShieldCheck, User, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+
+// Form validation schemas
+const loginSchema = z.object({
+  email: z.string().email("Email tidak valid"),
+  password: z.string().min(6, "Password minimal 6 karakter"),
+  isAdmin: z.boolean().default(false)
+});
+
+const signupSchema = z.object({
+  email: z.string().email("Email tidak valid"),
+  password: z.string().min(6, "Password minimal 6 karakter"),
+  confirmPassword: z.string().min(6, "Password minimal 6 karakter"),
+  name: z.string().min(2, "Nama minimal 2 karakter"),
+  isAdmin: z.boolean().default(false)
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Password tidak cocok",
+  path: ["confirmPassword"],
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
+type SignupFormValues = z.infer<typeof signupSchema>;
 
 const Auth = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isAdminLogin, setIsAdminLogin] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  
+  // Login form
+  const loginForm = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      isAdmin: false
+    }
+  });
+  
+  // Sign up form
+  const signupForm = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+      name: "",
+      isAdmin: false
+    }
+  });
 
   const checkUserRole = async (userId: string) => {
     const { data: roleData } = await supabase
@@ -25,14 +74,13 @@ const Auth = () => {
     return !!roleData;
   };
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async (values: LoginFormValues) => {
     setLoading(true);
 
     try {
       const { error, data } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: values.email,
+        password: values.password,
       });
 
       if (error) throw error;
@@ -40,7 +88,7 @@ const Auth = () => {
       if (data.user) {
         const isAdmin = await checkUserRole(data.user.id);
         
-        if (isAdminLogin && !isAdmin) {
+        if (values.isAdmin && !isAdmin) {
           await supabase.auth.signOut();
           throw new Error("Akses ditolak. Anda bukan admin.");
         }
@@ -70,82 +118,326 @@ const Auth = () => {
     }
   };
 
+  const handleSignup = async (values: SignupFormValues) => {
+    setLoading(true);
+    
+    try {
+      // Create user account
+      const { error, data } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        options: {
+          data: {
+            name: values.name,
+          }
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data.user) {
+        // If signup is for admin, assign admin role
+        if (values.isAdmin) {
+          const { error: roleError } = await supabase
+            .from('user_roles')
+            .insert([
+              { user_id: data.user.id, role: 'admin' }
+            ]);
+
+          if (roleError) throw roleError;
+        }
+
+        toast({
+          title: "Pendaftaran Berhasil",
+          description: values.isAdmin 
+            ? "Akun admin berhasil dibuat! Silahkan login." 
+            : "Akun berhasil dibuat! Silahkan login.",
+        });
+        
+        // Switch to login mode
+        setAuthMode("login");
+        loginForm.setValue("email", values.email);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Pendaftaran Gagal",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const togglePasswordVisibility = () => setShowPassword(!showPassword);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl text-green-800">
-            Akses Pengguna
+            {authMode === "login" ? "Masuk Akun" : "Daftar Akun Baru"}
           </CardTitle>
           <CardDescription>
-            Masuk sebagai Pengguna atau Admin
+            {authMode === "login" 
+              ? "Masuk sebagai Pengguna atau Admin" 
+              : "Buat akun baru sebagai Pengguna atau Admin"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="user" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8">
+          <Tabs 
+            value={authMode} 
+            onValueChange={(value) => setAuthMode(value as "login" | "signup")}
+            className="w-full"
+          >
+            <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger 
-                value="user" 
-                onClick={() => setIsAdminLogin(false)}
+                value="login" 
                 className="flex items-center gap-2"
               >
-                <LogIn className="h-4 w-4" /> Pengguna
+                <LogIn className="h-4 w-4" /> Masuk
               </TabsTrigger>
               <TabsTrigger 
-                value="admin" 
-                onClick={() => setIsAdminLogin(true)}
+                value="signup"
                 className="flex items-center gap-2"
               >
-                <ShieldCheck className="h-4 w-4" /> Admin
+                <UserPlus className="h-4 w-4" /> Daftar
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value={isAdminLogin ? "admin" : "user"}>
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <label htmlFor="login-email" className="text-sm font-medium">Email</label>
-                  <div className="flex">
-                    <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
-                      <Mail className="h-4 w-4" />
-                    </span>
-                    <Input
-                      id="login-email"
-                      type="email"
-                      placeholder="email@contoh.com"
-                      className="rounded-l-none"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
+            {/* Login Form */}
+            <TabsContent value="login">
+              <Form {...loginForm}>
+                <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
+                  <FormField
+                    control={loginForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <div className="flex">
+                          <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
+                            <Mail className="h-4 w-4" />
+                          </span>
+                          <FormControl>
+                            <Input
+                              placeholder="email@contoh.com"
+                              className="rounded-l-none"
+                              {...field}
+                            />
+                          </FormControl>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <div className="space-y-2">
-                  <label htmlFor="login-password" className="text-sm font-medium">Password</label>
-                  <div className="flex">
-                    <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
-                      <Key className="h-4 w-4" />
-                    </span>
-                    <Input
-                      id="login-password"
-                      type="password"
-                      placeholder="Password"
-                      className="rounded-l-none"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
+                  <FormField
+                    control={loginForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <div className="relative flex">
+                          <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
+                            <Key className="h-4 w-4" />
+                          </span>
+                          <FormControl>
+                            <Input
+                              type={showPassword ? "text" : "password"}
+                              placeholder="Password"
+                              className="rounded-l-none pr-10"
+                              {...field}
+                            />
+                          </FormControl>
+                          <button
+                            type="button"
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                            onClick={togglePasswordVisibility}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <Button
-                  className="w-full bg-green-600 hover:bg-green-700"
-                  type="submit"
-                  disabled={loading}
-                >
-                  {loading ? "Memproses..." : (isAdminLogin ? "Login Admin" : "Masuk")}
-                </Button>
-              </form>
+                  <FormField
+                    control={loginForm.control}
+                    name="isAdmin"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="flex items-center gap-1">
+                            <ShieldCheck className="h-4 w-4 text-green-600" />
+                            Login sebagai Admin
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    type="submit"
+                    disabled={loading}
+                  >
+                    {loading ? "Memproses..." : "Masuk"}
+                  </Button>
+                </form>
+              </Form>
+            </TabsContent>
+
+            {/* Sign Up Form */}
+            <TabsContent value="signup">
+              <Form {...signupForm}>
+                <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-4">
+                  <FormField
+                    control={signupForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nama Lengkap</FormLabel>
+                        <div className="flex">
+                          <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
+                            <User className="h-4 w-4" />
+                          </span>
+                          <FormControl>
+                            <Input
+                              placeholder="Nama Lengkap"
+                              className="rounded-l-none"
+                              {...field}
+                            />
+                          </FormControl>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={signupForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <div className="flex">
+                          <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
+                            <Mail className="h-4 w-4" />
+                          </span>
+                          <FormControl>
+                            <Input
+                              placeholder="email@contoh.com"
+                              className="rounded-l-none"
+                              {...field}
+                            />
+                          </FormControl>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={signupForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <div className="relative flex">
+                          <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
+                            <Key className="h-4 w-4" />
+                          </span>
+                          <FormControl>
+                            <Input
+                              type={showPassword ? "text" : "password"}
+                              placeholder="Password"
+                              className="rounded-l-none pr-10"
+                              {...field}
+                            />
+                          </FormControl>
+                          <button
+                            type="button"
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                            onClick={togglePasswordVisibility}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={signupForm.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Konfirmasi Password</FormLabel>
+                        <div className="flex">
+                          <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
+                            <Key className="h-4 w-4" />
+                          </span>
+                          <FormControl>
+                            <Input
+                              type={showPassword ? "text" : "password"}
+                              placeholder="Konfirmasi Password"
+                              className="rounded-l-none"
+                              {...field}
+                            />
+                          </FormControl>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={signupForm.control}
+                    name="isAdmin"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="flex items-center gap-1">
+                            <ShieldCheck className="h-4 w-4 text-green-600" />
+                            Daftar sebagai Admin
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    type="submit"
+                    disabled={loading}
+                  >
+                    {loading ? "Memproses..." : "Daftar"}
+                  </Button>
+                </form>
+              </Form>
             </TabsContent>
           </Tabs>
         </CardContent>
