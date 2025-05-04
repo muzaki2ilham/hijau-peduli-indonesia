@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Key, UserPlus, LogIn, ShieldCheck, User, Eye, EyeOff } from "lucide-react";
+import { Mail, Key, UserPlus, LogIn, ShieldCheck, User, Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -14,6 +14,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+
+// Admin token for verification
+const ADMIN_TOKEN = "270404";
 
 // Form validation schemas
 const loginSchema = z.object({
@@ -27,11 +30,18 @@ const signupSchema = z.object({
   password: z.string().min(6, "Password minimal 6 karakter"),
   confirmPassword: z.string().min(6, "Password minimal 6 karakter"),
   name: z.string().min(2, "Nama minimal 2 karakter"),
-  isAdmin: z.boolean().default(false)
+  isAdmin: z.boolean().default(false),
+  adminToken: z.string().optional()
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Password tidak cocok",
   path: ["confirmPassword"],
-});
+}).refine(
+  (data) => !data.isAdmin || (data.isAdmin && data.adminToken === ADMIN_TOKEN),
+  {
+    message: "Token admin tidak valid",
+    path: ["adminToken"],
+  }
+);
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 type SignupFormValues = z.infer<typeof signupSchema>;
@@ -61,7 +71,8 @@ const Auth = () => {
       password: "",
       confirmPassword: "",
       name: "",
-      isAdmin: false
+      isAdmin: false,
+      adminToken: ""
     }
   });
 
@@ -136,8 +147,12 @@ const Auth = () => {
       if (error) throw error;
       
       if (data.user) {
-        // If signup is for admin, assign admin role
+        // If signup is for admin, verify token and assign admin role
         if (values.isAdmin) {
+          if (values.adminToken !== ADMIN_TOKEN) {
+            throw new Error("Token admin tidak valid");
+          }
+          
           const { error: roleError } = await supabase
             .from('user_roles')
             .insert([
@@ -170,6 +185,9 @@ const Auth = () => {
   };
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
+
+  // Watch isAdmin field to conditionally show admin token field
+  const watchIsAdmin = signupForm.watch("isAdmin");
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 flex items-center justify-center p-4">
@@ -428,6 +446,34 @@ const Auth = () => {
                       </FormItem>
                     )}
                   />
+
+                  {/* Admin Token field only shown when isAdmin is checked */}
+                  {watchIsAdmin && (
+                    <FormField
+                      control={signupForm.control}
+                      name="adminToken"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            Token Admin
+                            <AlertTriangle className="h-4 w-4 text-orange-500" />
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="password"
+                              placeholder="Masukkan token admin"
+                              {...field}
+                              className="border-orange-300 focus:border-orange-500"
+                            />
+                          </FormControl>
+                          <p className="text-xs text-orange-600 mt-1">
+                            Diperlukan token khusus untuk pendaftaran admin
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
 
                   <Button
                     className="w-full bg-green-600 hover:bg-green-700"

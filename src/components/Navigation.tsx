@@ -8,20 +8,35 @@ const Navigation: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   useEffect(() => {
     const checkUser = async () => {
       const { data } = await supabase.auth.getSession();
       setIsLoggedIn(!!data.session);
+      
+      if (data.session?.user) {
+        const { data: roleCheck } = await supabase.rpc('user_has_role', {
+          _user_id: data.session.user.id,
+          _role: 'admin'
+        });
+        setIsAdmin(!!roleCheck);
+      }
     };
     
     checkUser();
     
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN') {
-        setIsLoggedIn(true);
-      } else if (event === 'SIGNED_OUT') {
-        setIsLoggedIn(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setIsLoggedIn(!!session);
+      
+      if (session?.user) {
+        const { data: roleCheck } = await supabase.rpc('user_has_role', {
+          _user_id: session.user.id,
+          _role: 'admin'
+        });
+        setIsAdmin(!!roleCheck);
+      } else {
+        setIsAdmin(false);
       }
     });
     
@@ -30,8 +45,8 @@ const Navigation: React.FC = () => {
     };
   }, []);
   
-  // Don't show navigation on the auth page
-  if (location.pathname === '/auth') return null;
+  // Don't show navigation on the auth page or if user is admin
+  if (location.pathname === '/auth' || isAdmin) return null;
   
   return (
     <nav className="bg-white shadow-sm py-3">
