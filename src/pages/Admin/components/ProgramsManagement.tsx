@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Loader2, Plus, Pencil, Trash2, Image, Calendar } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Image } from "lucide-react";
 import { usePrograms, Program } from '../hooks/usePrograms';
+
+type ProgramStatus = 'active' | 'inactive' | 'completed';
 
 const ProgramsManagement: React.FC = () => {
   const { programs, loading, fetchPrograms, createProgram, updateProgram, deleteProgram, uploadImage } = usePrograms();
@@ -20,7 +22,7 @@ const ProgramsManagement: React.FC = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    status: 'active' as 'active' | 'inactive' | 'completed',
+    status: 'active' as ProgramStatus,
     start_date: '',
     end_date: '',
     image_url: ''
@@ -32,7 +34,7 @@ const ProgramsManagement: React.FC = () => {
     setFormData({
       title: '',
       description: '',
-      status: 'active',
+      status: 'active' as ProgramStatus,
       start_date: '',
       end_date: '',
       image_url: ''
@@ -47,7 +49,7 @@ const ProgramsManagement: React.FC = () => {
     setFormData({
       title: program.title,
       description: program.description,
-      status: program.status,
+      status: program.status as ProgramStatus,
       start_date: program.start_date || '',
       end_date: program.end_date || '',
       image_url: program.image_url || ''
@@ -215,7 +217,7 @@ const ProgramsManagement: React.FC = () => {
                   <Label htmlFor="status">Status</Label>
                   <Select 
                     value={formData.status} 
-                    onValueChange={(value) => setFormData({ ...formData, status: value })}
+                    onValueChange={(value: ProgramStatus) => setFormData({ ...formData, status: value })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih status" />

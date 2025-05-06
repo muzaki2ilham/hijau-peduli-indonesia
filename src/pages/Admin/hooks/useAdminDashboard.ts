@@ -96,14 +96,14 @@ export const useAdminDashboard = () => {
 
       // Get the actual user email from auth (requires admin access)
       const { data: authUsers, error: authError } = await supabase
-        .rpc('get_all_users_email');
+        .functions.invoke('get_all_users_email');
 
       if (authError) throw authError;
 
       // Combine the data
       const combinedProfiles: UserProfile[] = users.map((user: any) => {
         const userRole = roles.find((role: any) => role.user_id === user.id);
-        const authUser = authUsers?.find((auth: any) => auth.id === user.id);
+        const authUser = authUsers ? authUsers.find((auth: any) => auth.id === user.id) : null;
         
         return {
           id: user.id,

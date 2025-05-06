@@ -40,10 +40,9 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
       // Fetch complaints count for each user
       const { data: complaintsData, error: complaintsError } = await supabase
         .from('complaints')
-        .select('user_id, count')
-        .eq('user_id', 'is.not.null')
-        .group('user_id');
-
+        .select('user_id, count(*)')
+        .not('user_id', 'is', null);
+      
       if (complaintsError) throw complaintsError;
 
       const complaints: Record<string, number> = {};
@@ -56,9 +55,8 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
       // Fetch service requests count for each user
       const { data: requestsData, error: requestsError } = await supabase
         .from('service_requests')
-        .select('user_id, count')
-        .eq('user_id', 'is.not.null')
-        .group('user_id');
+        .select('user_id, count(*)')
+        .not('user_id', 'is', null);
 
       if (requestsError) throw requestsError;
 
