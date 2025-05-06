@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   UserCheck, 
@@ -14,73 +13,75 @@ import {
 } from "lucide-react";
 
 interface AdminMenuItem {
+  id: string;
   title: string;
   icon: React.ReactNode;
-  onClick: () => void;
   description: string;
 }
 
-const AdminMenu: React.FC = () => {
-  const navigate = useNavigate();
-  
+interface AdminMenuProps {
+  onNavigate: (tab: string) => void;
+}
+
+const AdminMenu: React.FC<AdminMenuProps> = ({ onNavigate }) => {
   const adminMenuItems: AdminMenuItem[] = [
     { 
+      id: "users",
       title: "Kelola Pengguna", 
       icon: <UserCheck className="h-6 w-6" />,
-      onClick: () => navigate('/admin/users'),
       description: "Kelola akun dan hak akses pengguna"
     },
     { 
+      id: "complaints",
       title: "Pengaduan", 
       icon: <MessageCircle className="h-6 w-6" />,
-      onClick: () => navigate('/admin/complaints'),
       description: "Lihat dan tanggapi pengaduan masyarakat"
     },
     { 
+      id: "requests",
       title: "Permohonan", 
       icon: <ClipboardList className="h-6 w-6" />,
-      onClick: () => navigate('/admin/requests'),
       description: "Kelola permohonan layanan"
     },
     { 
+      id: "gallery",
       title: "Galeri", 
       icon: <Image className="h-6 w-6" />,
-      onClick: () => navigate('/admin/gallery'),
       description: "Kelola foto dan video"
     },
     { 
+      id: "blog",
       title: "Blog", 
       icon: <FileText className="h-6 w-6" />,
-      onClick: () => navigate('/admin/blog'),
       description: "Kelola artikel dan berita"
     },
     { 
+      id: "programs",
       title: "Program", 
       icon: <FilePlus className="h-6 w-6" />,
-      onClick: () => navigate('/admin/programs'),
       description: "Kelola program dan kegiatan"
     },
     { 
-      title: "Statistik", 
-      icon: <BarChart3 className="h-6 w-6" />,
-      onClick: () => navigate('/admin/stats'),
-      description: "Lihat statistik dan laporan"
+      id: "department",
+      title: "Informasi Dinas", 
+      icon: <Settings className="h-6 w-6" />,
+      description: "Kelola informasi departemen"
     },
     { 
-      title: "Pengaturan", 
-      icon: <Settings className="h-6 w-6" />,
-      onClick: () => navigate('/admin/settings'),
-      description: "Konfigurasi sistem"
+      id: "stats",
+      title: "Statistik", 
+      icon: <BarChart3 className="h-6 w-6" />,
+      description: "Lihat statistik dan laporan"
     }
   ];
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {adminMenuItems.map((item, index) => (
+      {adminMenuItems.map((item) => (
         <Card 
-          key={index} 
+          key={item.id} 
           className="hover:bg-green-50 cursor-pointer transition-colors"
-          onClick={item.onClick}
+          onClick={() => onNavigate(item.id)}
         >
           <CardContent className="flex flex-col items-center justify-center p-4 space-y-2">
             <div className="text-green-600 bg-green-100 p-3 rounded-full">{item.icon}</div>
