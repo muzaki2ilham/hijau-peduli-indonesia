@@ -1,5 +1,45 @@
 
 project_id = "odenbatdqohfxgjibkff"
 
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://localhost"
+
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+
+[auth.email]
+enabled = true
+
+[realtime]
+enabled = true
+
+[functions]
+[functions.get_all_users_email]
+verify_jwt = true
 [functions.send-notification]
 verify_jwt = false
+[functions.update-complaint-status]
+verify_jwt = true
+[functions.respond-to-complaint]
+verify_jwt = true
+[functions.complaint-responses]
+verify_jwt = true

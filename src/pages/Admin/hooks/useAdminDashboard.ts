@@ -36,6 +36,14 @@ export interface UserProfile {
   created_at: string;
 }
 
+export interface ComplaintResponse {
+  id: string;
+  complaint_id: string;
+  response_text: string;
+  created_at: string;
+  admin_name: string;
+}
+
 export const useAdminDashboard = () => {
   const [recentComplaints, setRecentComplaints] = useState<Complaint[]>([]);
   const [recentRequests, setRecentRequests] = useState<ServiceRequest[]>([]);
@@ -154,6 +162,65 @@ export const useAdminDashboard = () => {
     }
   };
 
+  const updateComplaintStatus = async (id: string, status: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('complaints')
+        .update({ status })
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      // Update local state
+      setRecentComplaints(prev => 
+        prev.map(complaint => complaint.id === id ? { ...complaint, status } : complaint)
+      );
+      
+      return true;
+    } catch (error) {
+      console.error('Error updating complaint status:', error);
+      return false;
+    }
+  };
+  
+  const respondToComplaint = async (complaintId: string, responseText: string, adminName: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('complaint_responses')
+        .insert({
+          complaint_id: complaintId,
+          response_text: responseText,
+          admin_name: adminName
+        });
+
+      if (error) throw error;
+      
+      // Update complaint status to "responded"
+      await updateComplaintStatus(complaintId, 'responded');
+      
+      return true;
+    } catch (error) {
+      console.error('Error responding to complaint:', error);
+      return false;
+    }
+  };
+  
+  const fetchComplaintResponses = async (complaintId: string): Promise<ComplaintResponse[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('complaint_responses')
+        .select('*')
+        .eq('complaint_id', complaintId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching complaint responses:', error);
+      return [];
+    }
+  };
+
   return {
     recentComplaints,
     recentRequests,
@@ -163,6 +230,9 @@ export const useAdminDashboard = () => {
     fetchDashboardData,
     fetchUserProfiles,
     fetchAllComplaints,
-    fetchAllRequests
+    fetchAllRequests,
+    updateComplaintStatus,
+    respondToComplaint,
+    fetchComplaintResponses
   };
 };
