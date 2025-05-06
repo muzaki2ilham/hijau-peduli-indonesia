@@ -7,6 +7,9 @@ export interface Complaint {
   name: string;
   complaint_type: string;
   status: string;
+  location: string;
+  description: string;
+  email: string;
 }
 
 export interface ServiceRequest {
@@ -14,6 +17,11 @@ export interface ServiceRequest {
   name: string;
   service_type: string;
   status: string;
+  request_date: string;
+  email: string;
+  phone: string;
+  address: string;
+  description: string;
 }
 
 export const useAdminDashboard = () => {

@@ -20,7 +20,7 @@ const ProgramsManagement: React.FC = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    status: 'active',
+    status: 'active' as 'active' | 'inactive' | 'completed',
     start_date: '',
     end_date: '',
     image_url: ''

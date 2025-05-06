@@ -35,7 +35,11 @@ export const useGalleryItems = () => {
         throw error;
       }
 
-      setGalleryItems(data || []);
+      // Cast the data to ensure it matches the GalleryItem type
+      setGalleryItems((data || []).map(item => ({
+        ...item,
+        type: item.type as 'photo' | 'video'
+      })));
     } catch (error: any) {
       toast({
         title: 'Error saat memuat galeri',

@@ -33,7 +33,11 @@ export const usePrograms = () => {
         throw error;
       }
 
-      setPrograms(data || []);
+      // Cast the data to ensure it matches the Program type
+      setPrograms((data || []).map(item => ({
+        ...item,
+        status: item.status as 'active' | 'inactive' | 'completed'
+      })));
     } catch (error: any) {
       toast({
         title: 'Error saat memuat program',
