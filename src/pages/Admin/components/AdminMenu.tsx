@@ -1,96 +1,81 @@
 
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  UserCheck, 
-  ClipboardList, 
-  MessageCircle, 
-  Settings,
-  BarChart3,
-  Image,
-  FilePlus,
-  FileText
-} from "lucide-react";
-
-interface AdminMenuItem {
-  id: string;
-  title: string;
-  icon: React.ReactNode;
-  description: string;
-}
+import { MessageCircle, ClipboardList, Image, FileText, FilePlus, BarChart3, Settings, Users } from "lucide-react";
 
 interface AdminMenuProps {
   onNavigate: (tab: string) => void;
 }
 
 const AdminMenu: React.FC<AdminMenuProps> = ({ onNavigate }) => {
-  const adminMenuItems: AdminMenuItem[] = [
-    { 
-      id: "users",
-      title: "Kelola Pengguna", 
-      icon: <UserCheck className="h-6 w-6" />,
-      description: "Kelola akun dan hak akses pengguna"
+  const menuItems = [
+    {
+      id: 'complaints',
+      title: 'Manajemen Pengaduan',
+      description: 'Kelola pengaduan dari masyarakat',
+      icon: <MessageCircle className="h-8 w-8 text-orange-500" />,
+      color: 'bg-orange-100'
     },
-    { 
-      id: "complaints",
-      title: "Pengaduan", 
-      icon: <MessageCircle className="h-6 w-6" />,
-      description: "Lihat dan tanggapi pengaduan masyarakat"
+    {
+      id: 'requests',
+      title: 'Manajemen Permohonan',
+      description: 'Kelola permohonan layanan',
+      icon: <ClipboardList className="h-8 w-8 text-blue-500" />,
+      color: 'bg-blue-100'
     },
-    { 
-      id: "requests",
-      title: "Permohonan", 
-      icon: <ClipboardList className="h-6 w-6" />,
-      description: "Kelola permohonan layanan"
+    {
+      id: 'users',
+      title: 'Manajemen Pengguna',
+      description: 'Kelola data pengguna',
+      icon: <Users className="h-8 w-8 text-purple-500" />,
+      color: 'bg-purple-100'
     },
-    { 
-      id: "gallery",
-      title: "Galeri", 
-      icon: <Image className="h-6 w-6" />,
-      description: "Kelola foto dan video"
+    {
+      id: 'gallery',
+      title: 'Manajemen Galeri',
+      description: 'Kelola foto dan video',
+      icon: <Image className="h-8 w-8 text-red-500" />,
+      color: 'bg-red-100'
     },
-    { 
-      id: "blog",
-      title: "Blog", 
-      icon: <FileText className="h-6 w-6" />,
-      description: "Kelola artikel dan berita"
+    {
+      id: 'blog',
+      title: 'Manajemen Blog',
+      description: 'Kelola artikel dan berita',
+      icon: <FileText className="h-8 w-8 text-emerald-500" />,
+      color: 'bg-emerald-100'
     },
-    { 
-      id: "programs",
-      title: "Program", 
-      icon: <FilePlus className="h-6 w-6" />,
-      description: "Kelola program dan kegiatan"
+    {
+      id: 'programs',
+      title: 'Manajemen Program',
+      description: 'Kelola program dan kegiatan',
+      icon: <FilePlus className="h-8 w-8 text-yellow-500" />,
+      color: 'bg-yellow-100'
     },
-    { 
-      id: "department",
-      title: "Informasi Dinas", 
-      icon: <Settings className="h-6 w-6" />,
-      description: "Kelola informasi departemen"
-    },
-    { 
-      id: "stats",
-      title: "Statistik", 
-      icon: <BarChart3 className="h-6 w-6" />,
-      description: "Lihat statistik dan laporan"
+    {
+      id: 'department',
+      title: 'Informasi Dinas',
+      description: 'Kelola informasi tentang dinas',
+      icon: <Settings className="h-8 w-8 text-gray-500" />,
+      color: 'bg-gray-100'
     }
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {adminMenuItems.map((item) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {menuItems.map((item) => (
         <Card 
-          key={item.id} 
-          className="hover:bg-green-50 cursor-pointer transition-colors"
+          key={item.id}
+          className="hover:shadow-md cursor-pointer transition-shadow"
           onClick={() => onNavigate(item.id)}
         >
-          <CardContent className="flex flex-col items-center justify-center p-4 space-y-2">
-            <div className="text-green-600 bg-green-100 p-3 rounded-full">{item.icon}</div>
-            <h3 className="text-base font-medium text-green-800 text-center">
-              {item.title}
-            </h3>
-            <p className="text-xs text-gray-500 text-center">
-              {item.description}
-            </p>
+          <CardContent className="p-6 flex items-center gap-4">
+            <div className={`p-3 rounded-full ${item.color}`}>
+              {item.icon}
+            </div>
+            <div>
+              <h3 className="font-medium">{item.title}</h3>
+              <p className="text-sm text-gray-500">{item.description}</p>
+            </div>
           </CardContent>
         </Card>
       ))}
