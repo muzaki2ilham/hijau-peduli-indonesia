@@ -12,6 +12,7 @@ export default defineConfig({
     },
   },
   server: {
+    port: 8080,
     proxy: {
       '/api/update-complaint-status': {
         target: 'https://odenbatdqohfxgjibkff.supabase.co/functions/v1/update-complaint-status',
