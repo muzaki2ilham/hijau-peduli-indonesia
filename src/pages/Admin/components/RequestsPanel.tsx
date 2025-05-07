@@ -1,11 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, ClipboardList, CheckCircle, Clock, Eye } from "lucide-react";
+import { Loader2, ClipboardList, CheckCircle, Clock, Eye, RefreshCw } from "lucide-react";
 import { ServiceRequest } from '../hooks/useAdminDashboard';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -14,48 +14,47 @@ interface RequestsPanelProps {
   requests: ServiceRequest[];
   loading: boolean;
   showAll?: boolean;
+  onRefresh?: () => void;
 }
 
 const RequestsPanel: React.FC<RequestsPanelProps> = ({ 
   requests, 
   loading,
-  showAll = false
+  showAll = false,
+  onRefresh
 }) => {
   const [selectedRequest, setSelectedRequest] = useState<ServiceRequest | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
-  const [allRequests, setAllRequests] = useState<ServiceRequest[]>([]);
-  const [loadingAll, setLoadingAll] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
 
-  const fetchAllRequests = async () => {
-    if (showAll && allRequests.length === 0) {
-      setLoadingAll(true);
+  const handleRefresh = async () => {
+    if (onRefresh) {
+      setIsRefreshing(true);
       try {
-        const { data, error } = await supabase
-          .from('service_requests')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        setAllRequests(data || []);
-      } catch (error: any) {
+        await onRefresh();
         toast({
-          title: 'Error saat memuat permohonan',
-          description: error.message,
-          variant: 'destructive',
+          title: 'Data diperbarui',
+          description: 'Data permohonan telah diperbarui',
+        });
+      } catch (error) {
+        console.error('Error refreshing data:', error);
+        toast({
+          title: 'Error',
+          description: 'Gagal memperbarui data',
+          variant: 'destructive'
         });
       } finally {
-        setLoadingAll(false);
+        setIsRefreshing(false);
       }
     }
   };
 
-  React.useEffect(() => {
-    if (showAll) {
-      fetchAllRequests();
-    }
-  }, [showAll]);
+  useEffect(() => {
+    // Log the number of requests received in props
+    console.log(`RequestsPanel received ${requests.length} requests`);
+  }, [requests]);
 
   const handleViewRequest = (request: ServiceRequest) => {
     setSelectedRequest(request);
@@ -72,18 +71,16 @@ const RequestsPanel: React.FC<RequestsPanelProps> = ({
 
       if (error) throw error;
 
-      // Update in memory
-      if (showAll) {
-        setAllRequests(allRequests.map(r => 
-          r.id === id ? { ...r, status } : r
-        ));
-      }
-
       toast({
         title: 'Status diperbarui',
         description: `Permohonan telah diperbarui ke status: ${status}`,
       });
 
+      // Refresh the data after update
+      if (onRefresh) {
+        await onRefresh();
+      }
+      
       setOpenDialog(false);
     } catch (error: any) {
       toast({
@@ -96,19 +93,45 @@ const RequestsPanel: React.FC<RequestsPanelProps> = ({
     }
   };
 
-  const displayedRequests = showAll ? allRequests : requests;
-  const isLoading = showAll ? loadingAll : loading;
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'outline';
+      case 'processing':
+        return 'secondary';
+      case 'completed':
+        return 'default';
+      default:
+        return 'destructive';
+    }
+  };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl flex items-center">
-          <ClipboardList className="mr-2 h-5 w-5 text-blue-500" />
-          {showAll ? "Semua Permohonan" : "Permohonan Layanan Terbaru"}
-        </CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-xl flex items-center">
+            <ClipboardList className="mr-2 h-5 w-5 text-blue-500" />
+            {showAll ? "Semua Permohonan" : "Permohonan Layanan Terbaru"}
+          </CardTitle>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            {isRefreshing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            <span className="ml-1">Refresh</span>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
+        {loading || isRefreshing ? (
           <div className="flex justify-center p-4">
             <Loader2 className="h-8 w-8 animate-spin text-green-600" />
           </div>
@@ -123,23 +146,19 @@ const RequestsPanel: React.FC<RequestsPanelProps> = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {displayedRequests.length === 0 ? (
+              {requests.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center">
                     Belum ada permohonan layanan
                   </TableCell>
                 </TableRow>
               ) : (
-                displayedRequests.map((request) => (
+                requests.map((request) => (
                   <TableRow key={request.id}>
                     <TableCell className="font-medium">{request.name}</TableCell>
                     <TableCell>{request.service_type}</TableCell>
                     <TableCell>
-                      <Badge variant={
-                        request.status === "pending" ? "outline" :
-                        request.status === "processing" ? "secondary" :
-                        request.status === "completed" ? "default" : "destructive"
-                      }>
+                      <Badge variant={getStatusBadgeVariant(request.status)}>
                         {request.status}
                       </Badge>
                     </TableCell>
@@ -157,14 +176,6 @@ const RequestsPanel: React.FC<RequestsPanelProps> = ({
               )}
             </TableBody>
           </Table>
-        )}
-
-        {!showAll && displayedRequests.length > 0 && (
-          <div className="mt-4 flex justify-center">
-            <Button variant="outline" onClick={() => fetchAllRequests()}>
-              Lihat Semua Permohonan
-            </Button>
-          </div>
         )}
 
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
@@ -189,11 +200,7 @@ const RequestsPanel: React.FC<RequestsPanelProps> = ({
                   </div>
                   <div>
                     <p className="text-sm font-medium">Status:</p>
-                    <Badge variant={
-                      selectedRequest.status === "pending" ? "outline" :
-                      selectedRequest.status === "processing" ? "secondary" :
-                      selectedRequest.status === "completed" ? "default" : "destructive"
-                    }>
+                    <Badge variant={getStatusBadgeVariant(selectedRequest.status)}>
                       {selectedRequest.status}
                     </Badge>
                   </div>

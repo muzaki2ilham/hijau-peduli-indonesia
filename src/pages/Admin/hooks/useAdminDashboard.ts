@@ -59,6 +59,8 @@ export const useAdminDashboard = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
+      console.log("Fetching dashboard data...");
+      
       // Fetch recent complaints
       const { data: complaints, error: complaintsError } = await supabase
         .from('complaints')
@@ -66,7 +68,12 @@ export const useAdminDashboard = () => {
         .order('created_at', { ascending: false })
         .limit(5);
 
-      if (complaintsError) throw complaintsError;
+      if (complaintsError) {
+        console.error("Error fetching complaints:", complaintsError);
+        throw complaintsError;
+      }
+      
+      console.log("Fetched complaints:", complaints?.length || 0);
       setRecentComplaints(complaints || []);
 
       // Fetch recent service requests
@@ -76,7 +83,12 @@ export const useAdminDashboard = () => {
         .order('created_at', { ascending: false })
         .limit(5);
 
-      if (requestsError) throw requestsError;
+      if (requestsError) {
+        console.error("Error fetching service requests:", requestsError);
+        throw requestsError;
+      }
+      
+      console.log("Fetched service requests:", requests?.length || 0);
       setRecentRequests(requests || []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -88,29 +100,47 @@ export const useAdminDashboard = () => {
   const fetchUserProfiles = async () => {
     setUsersLoading(true);
     try {
+      console.log("Fetching user profiles...");
+      
       // Fetch all users with their roles
       const { data: users, error: usersError } = await supabase
         .from('profiles')
         .select('id, username, created_at');
 
-      if (usersError) throw usersError;
+      if (usersError) {
+        console.error("Error fetching profiles:", usersError);
+        throw usersError;
+      }
+      
+      console.log("Fetched profiles:", users?.length || 0);
 
       // Fetch user roles
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role');
 
-      if (rolesError) throw rolesError;
+      if (rolesError) {
+        console.error("Error fetching user roles:", rolesError);
+        throw rolesError;
+      }
+      
+      console.log("Fetched user roles:", roles?.length || 0);
 
       // Get the actual user email from auth (requires admin access)
+      console.log("Invoking get_all_users_email function...");
       const { data: authUsers, error: authError } = await supabase
         .functions.invoke('get_all_users_email');
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error("Error invoking get_all_users_email:", authError);
+        throw authError;
+      }
+      
+      console.log("Fetched auth users:", authUsers?.length || 0);
 
       // Combine the data
       const combinedProfiles: UserProfile[] = users.map((user: any) => {
-        const userRole = roles.find((role: any) => role.user_id === user.id);
+        const userRole = roles?.find((role: any) => role.user_id === user.id);
         const authUser = authUsers ? authUsers.find((auth: any) => auth.id === user.id) : null;
         
         return {
@@ -122,6 +152,7 @@ export const useAdminDashboard = () => {
         };
       });
 
+      console.log("Combined profiles:", combinedProfiles.length);
       setUserProfiles(combinedProfiles);
     } catch (error) {
       console.error('Error fetching user profiles:', error);
@@ -132,13 +163,19 @@ export const useAdminDashboard = () => {
 
   const fetchAllComplaints = async (): Promise<Complaint[]> => {
     try {
+      console.log("Fetching all complaints...");
       // Fetch all complaints
       const { data, error } = await supabase
         .from('complaints')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching all complaints:", error);
+        throw error;
+      }
+      
+      console.log("Fetched all complaints:", data?.length || 0);
       return data || [];
     } catch (error) {
       console.error('Error fetching all complaints:', error);
@@ -148,13 +185,19 @@ export const useAdminDashboard = () => {
 
   const fetchAllRequests = async (): Promise<ServiceRequest[]> => {
     try {
+      console.log("Fetching all service requests...");
       // Fetch all service requests
       const { data, error } = await supabase
         .from('service_requests')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching all service requests:", error);
+        throw error;
+      }
+      
+      console.log("Fetched all service requests:", data?.length || 0);
       return data || [];
     } catch (error) {
       console.error('Error fetching all service requests:', error);

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, UserIcon } from "lucide-react";
+import { Loader2, UserIcon, RefreshCw } from "lucide-react";
 import { UserProfile } from '../hooks/useAdminDashboard';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,23 +27,56 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
   const [userComplaints, setUserComplaints] = useState<Record<string, number>>({});
   const [userRequests, setUserRequests] = useState<Record<string, number>>({});
   const [loadingStats, setLoadingStats] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
+    // Log the number of users received in props
+    console.log(`UsersPanel received ${users.length} users`);
+    
     if (users.length > 0) {
       fetchUserStats();
     }
   }, [users]);
 
+  const handleRefresh = async () => {
+    if (onRefresh) {
+      setIsRefreshing(true);
+      try {
+        await onRefresh();
+        toast({
+          title: 'Data diperbarui',
+          description: 'Data pengguna telah diperbarui',
+        });
+      } catch (error) {
+        console.error('Error refreshing data:', error);
+        toast({
+          title: 'Error',
+          description: 'Gagal memperbarui data',
+          variant: 'destructive'
+        });
+      } finally {
+        setIsRefreshing(false);
+      }
+    }
+  };
+
   const fetchUserStats = async () => {
     setLoadingStats(true);
     try {
+      console.log("Fetching user stats...");
+      
       // Fetch complaints count for each user
       const { data: complaintsData, error: complaintsError } = await supabase
         .from('complaints')
         .select('user_id, count(*)')
         .not('user_id', 'is', null);
       
-      if (complaintsError) throw complaintsError;
+      if (complaintsError) {
+        console.error("Error fetching complaints stats:", complaintsError);
+        throw complaintsError;
+      }
+      
+      console.log("Fetched complaints stats:", complaintsData?.length || 0);
 
       const complaints: Record<string, number> = {};
       complaintsData?.forEach((item: any) => {
@@ -58,7 +91,12 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
         .select('user_id, count(*)')
         .not('user_id', 'is', null);
 
-      if (requestsError) throw requestsError;
+      if (requestsError) {
+        console.error("Error fetching requests stats:", requestsError);
+        throw requestsError;
+      }
+      
+      console.log("Fetched requests stats:", requestsData?.length || 0);
 
       const requests: Record<string, number> = {};
       requestsData?.forEach((item: any) => {
@@ -92,13 +130,29 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl flex items-center">
-          <UserIcon className="mr-2 h-5 w-5 text-purple-500" />
-          {showAll ? "Semua Pengguna" : "Pengguna Terbaru"}
-        </CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-xl flex items-center">
+            <UserIcon className="mr-2 h-5 w-5 text-purple-500" />
+            {showAll ? "Semua Pengguna" : "Pengguna Terbaru"}
+          </CardTitle>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            {isRefreshing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            <span className="ml-1">Refresh</span>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
-        {loading ? (
+        {loading || isRefreshing ? (
           <div className="flex justify-center p-4">
             <Loader2 className="h-8 w-8 animate-spin text-green-600" />
           </div>
@@ -147,7 +201,7 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
           </Table>
         )}
 
-        {(!showAll && users.length > 0) && (
+        {(!showAll && users.length > 0 && onRefresh) && (
           <div className="mt-4 flex justify-center">
             <Button variant="outline" onClick={onRefresh}>
               Lihat Semua Pengguna

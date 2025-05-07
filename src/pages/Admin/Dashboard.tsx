@@ -14,9 +14,11 @@ import ProgramsManagement from './components/ProgramsManagement';
 import DepartmentInfoManagement from './components/DepartmentInfoManagement';
 import UsersPanel from './components/UsersPanel';
 import { useAdminDashboard } from './hooks/useAdminDashboard';
+import { useToast } from "@/hooks/use-toast";
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { 
     recentComplaints, 
     recentRequests, 
@@ -33,24 +35,73 @@ const AdminDashboard: React.FC = () => {
   const [allComplaints, setAllComplaints] = useState([]);
   const [allRequests, setAllRequests] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    checkAdminStatus();
+    console.log("Dashboard mounted, fetching data...");
+  }, []);
 
   useEffect(() => {
     if (activeTab === "users") {
+      console.log("Setting all users:", userProfiles.length);
       setAllUsers(userProfiles);
     } else if (activeTab === "complaints") {
       loadAllComplaints();
     } else if (activeTab === "requests") {
       loadAllRequests();
     }
-  }, [activeTab]);
+  }, [activeTab, userProfiles]);
+
+  const checkAdminStatus = async () => {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session?.user) {
+        toast({
+          title: "Akses Ditolak",
+          description: "Silakan login untuk mengakses halaman admin",
+          variant: "destructive"
+        });
+        navigate('/auth');
+        return;
+      }
+      
+      // Check for admin role
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.session.user.id)
+        .eq('role', 'admin')
+        .single();
+      
+      if (error || !data) {
+        toast({
+          title: "Akses Ditolak",
+          description: "Anda tidak memiliki hak akses admin",
+          variant: "destructive"
+        });
+        navigate('/');
+        return;
+      }
+      
+      setIsAdmin(true);
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      navigate('/auth');
+    }
+  };
 
   const loadAllComplaints = async () => {
+    console.log("Loading all complaints...");
     const complaints = await fetchAllComplaints();
+    console.log("Loaded complaints:", complaints.length);
     setAllComplaints(complaints);
   };
 
   const loadAllRequests = async () => {
+    console.log("Loading all requests...");
     const requests = await fetchAllRequests();
+    console.log("Loaded requests:", requests.length);
     setAllRequests(requests);
   };
 
@@ -58,6 +109,15 @@ const AdminDashboard: React.FC = () => {
     await supabase.auth.signOut();
     navigate('/auth');
   };
+
+  // Only show content if user is admin
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 p-6 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 p-6">
@@ -114,7 +174,11 @@ const AdminDashboard: React.FC = () => {
               />
 
               {/* Recent Requests */}
-              <RequestsPanel requests={recentRequests} loading={loading} />
+              <RequestsPanel 
+                requests={recentRequests} 
+                loading={loading} 
+                onRefresh={fetchDashboardData}
+              />
             </div>
             
             {/* Recent Users */}
@@ -132,9 +196,19 @@ const AdminDashboard: React.FC = () => {
             onRefresh={loadAllComplaints}
           />
         ) : activeTab === "requests" ? (
-          <RequestsPanel requests={allRequests} loading={loading} showAll={true} />
+          <RequestsPanel 
+            requests={allRequests} 
+            loading={loading} 
+            showAll={true}
+            onRefresh={loadAllRequests} 
+          />
         ) : activeTab === "users" ? (
-          <UsersPanel users={allUsers} loading={usersLoading} showAll={true} />
+          <UsersPanel 
+            users={allUsers} 
+            loading={usersLoading} 
+            showAll={true}
+            onRefresh={fetchUserProfiles}
+          />
         ) : activeTab === "gallery" ? (
           <GalleryManagement />
         ) : activeTab === "blog" ? (
