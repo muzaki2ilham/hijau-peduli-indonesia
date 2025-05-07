@@ -1,14 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, ClipboardList, CheckCircle, Clock, Eye, RefreshCw } from "lucide-react";
-import { ServiceRequest } from '../hooks/useAdminDashboard';
+import { Loader2, ClipboardList, RefreshCw } from "lucide-react";
+import { ServiceRequest } from '../hooks/types';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import RequestsTable from './requests/RequestsTable';
+import RequestDetailDialog from './requests/RequestDetailDialog';
 
 interface RequestsPanelProps {
   requests: ServiceRequest[];
@@ -51,11 +50,6 @@ const RequestsPanel: React.FC<RequestsPanelProps> = ({
     }
   };
 
-  useEffect(() => {
-    // Log the number of requests received in props
-    console.log(`RequestsPanel received ${requests.length} requests`);
-  }, [requests]);
-
   const handleViewRequest = (request: ServiceRequest) => {
     setSelectedRequest(request);
     setOpenDialog(true);
@@ -93,19 +87,6 @@ const RequestsPanel: React.FC<RequestsPanelProps> = ({
     }
   };
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'outline';
-      case 'processing':
-        return 'secondary';
-      case 'completed':
-        return 'default';
-      default:
-        return 'destructive';
-    }
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -136,132 +117,20 @@ const RequestsPanel: React.FC<RequestsPanelProps> = ({
             <Loader2 className="h-8 w-8 animate-spin text-green-600" />
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nama</TableHead>
-                <TableHead>Jenis</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {requests.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center">
-                    Belum ada permohonan layanan
-                  </TableCell>
-                </TableRow>
-              ) : (
-                requests.map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell className="font-medium">{request.name}</TableCell>
-                    <TableCell>{request.service_type}</TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadgeVariant(request.status)}>
-                        {request.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleViewRequest(request)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          <RequestsTable 
+            requests={requests} 
+            onViewRequest={handleViewRequest} 
+            loading={loading}
+          />
         )}
 
-        <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-          <DialogContent className="sm:max-w-[550px]">
-            <DialogHeader>
-              <DialogTitle>Detail Permohonan</DialogTitle>
-            </DialogHeader>
-            {selectedRequest && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium">Nama:</p>
-                    <p>{selectedRequest.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Jenis Layanan:</p>
-                    <p>{selectedRequest.service_type}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Tanggal Permohonan:</p>
-                    <p>{new Date(selectedRequest.request_date).toLocaleDateString('id-ID')}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Status:</p>
-                    <Badge variant={getStatusBadgeVariant(selectedRequest.status)}>
-                      {selectedRequest.status}
-                    </Badge>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Email:</p>
-                    <p>{selectedRequest.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Telepon:</p>
-                    <p>{selectedRequest.phone}</p>
-                  </div>
-                </div>
-                
-                <div>
-                  <p className="text-sm font-medium">Alamat:</p>
-                  <p className="text-sm mt-1">{selectedRequest.address}</p>
-                </div>
-                
-                <div>
-                  <p className="text-sm font-medium">Deskripsi:</p>
-                  <p className="text-sm mt-1">{selectedRequest.description}</p>
-                </div>
-
-                <div className="flex justify-between pt-4">
-                  <div className="space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => updateRequestStatus(selectedRequest.id, 'pending')}
-                      disabled={selectedRequest.status === 'pending' || updateLoading}
-                    >
-                      <Clock className="mr-1 h-4 w-4" /> Pending
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => updateRequestStatus(selectedRequest.id, 'processing')}
-                      disabled={selectedRequest.status === 'processing' || updateLoading}
-                    >
-                      <Loader2 className="mr-1 h-4 w-4" /> Proses
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => updateRequestStatus(selectedRequest.id, 'completed')}
-                      disabled={selectedRequest.status === 'completed' || updateLoading}
-                    >
-                      <CheckCircle className="mr-1 h-4 w-4" /> Selesai
-                    </Button>
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={() => setOpenDialog(false)}
-                  >
-                    Tutup
-                  </Button>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
+        <RequestDetailDialog 
+          selectedRequest={selectedRequest}
+          open={openDialog}
+          onClose={() => setOpenDialog(false)}
+          updateRequestStatus={updateRequestStatus}
+          updateLoading={updateLoading}
+        />
       </CardContent>
     </Card>
   );

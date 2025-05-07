@@ -4,7 +4,7 @@
 import { useComplaints } from "./useComplaints";
 import { useServiceRequests } from "./useServiceRequests";
 import { useUserProfiles } from "./useUserProfiles";
-export { Complaint, ServiceRequest, UserProfile, ComplaintResponse } from "./types";
+export type { Complaint, ServiceRequest, UserProfile, ComplaintResponse } from "./types";
 
 export const useAdminDashboard = () => {
   const { 
