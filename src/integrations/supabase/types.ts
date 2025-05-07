@@ -48,6 +48,38 @@ export type Database = {
         }
         Relationships: []
       }
+      complaint_responses: {
+        Row: {
+          admin_name: string
+          complaint_id: string
+          created_at: string
+          id: string
+          response_text: string
+        }
+        Insert: {
+          admin_name: string
+          complaint_id: string
+          created_at?: string
+          id?: string
+          response_text: string
+        }
+        Update: {
+          admin_name?: string
+          complaint_id?: string
+          created_at?: string
+          id?: string
+          response_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaint_responses_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       complaints: {
         Row: {
           attachments: string[] | null

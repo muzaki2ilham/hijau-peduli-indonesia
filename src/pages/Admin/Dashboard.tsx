@@ -25,8 +25,10 @@ const AdminDashboard: React.FC = () => {
     usersLoading,
     fetchUserProfiles,
     fetchAllComplaints,
-    fetchAllRequests
+    fetchAllRequests,
+    fetchDashboardData
   } = useAdminDashboard();
+  
   const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [allComplaints, setAllComplaints] = useState([]);
   const [allRequests, setAllRequests] = useState([]);
@@ -105,7 +107,11 @@ const AdminDashboard: React.FC = () => {
           <div className="grid grid-cols-1 gap-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Recent Complaints */}
-              <ComplaintsPanel complaints={recentComplaints} loading={loading} />
+              <ComplaintsPanel 
+                complaints={recentComplaints} 
+                loading={loading} 
+                onRefresh={fetchDashboardData}
+              />
 
               {/* Recent Requests */}
               <RequestsPanel requests={recentRequests} loading={loading} />
@@ -119,7 +125,12 @@ const AdminDashboard: React.FC = () => {
             />
           </div>
         ) : activeTab === "complaints" ? (
-          <ComplaintsPanel complaints={allComplaints} loading={loading} showAll={true} />
+          <ComplaintsPanel 
+            complaints={allComplaints} 
+            loading={loading} 
+            showAll={true} 
+            onRefresh={loadAllComplaints}
+          />
         ) : activeTab === "requests" ? (
           <RequestsPanel requests={allRequests} loading={loading} showAll={true} />
         ) : activeTab === "users" ? (

@@ -164,11 +164,12 @@ export const useAdminDashboard = () => {
 
   const updateComplaintStatus = async (id: string, status: string): Promise<boolean> => {
     try {
-      const { error } = await supabase
-        .from('complaints')
-        .update({ status })
-        .eq('id', id);
-
+      // Call the edge function to update status
+      const { data, error } = await supabase
+        .functions.invoke('update-complaint-status', {
+          body: { id, status }
+        });
+      
       if (error) throw error;
       
       // Update local state
@@ -185,18 +186,22 @@ export const useAdminDashboard = () => {
   
   const respondToComplaint = async (complaintId: string, responseText: string, adminName: string): Promise<boolean> => {
     try {
-      const { error } = await supabase
-        .from('complaint_responses')
-        .insert({
-          complaint_id: complaintId,
-          response_text: responseText,
-          admin_name: adminName
+      // Call the edge function to respond to complaint
+      const { data, error } = await supabase
+        .functions.invoke('respond-to-complaint', {
+          body: {
+            complaintId,
+            responseText,
+            adminName
+          }
         });
-
+      
       if (error) throw error;
       
-      // Update complaint status to "responded"
-      await updateComplaintStatus(complaintId, 'responded');
+      // Update local state - mark the complaint as responded
+      setRecentComplaints(prev => 
+        prev.map(complaint => complaint.id === complaintId ? { ...complaint, status: 'responded' } : complaint)
+      );
       
       return true;
     } catch (error) {
@@ -207,13 +212,14 @@ export const useAdminDashboard = () => {
   
   const fetchComplaintResponses = async (complaintId: string): Promise<ComplaintResponse[]> => {
     try {
+      // Call the edge function to get responses
       const { data, error } = await supabase
-        .from('complaint_responses')
-        .select('*')
-        .eq('complaint_id', complaintId)
-        .order('created_at', { ascending: true });
-
+        .functions.invoke('complaint-responses', {
+          body: { complaintId }
+        });
+      
       if (error) throw error;
+      
       return data || [];
     } catch (error) {
       console.error('Error fetching complaint responses:', error);

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -9,9 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
 import { Loader2, Eye, MessageSquare, Mail, MailOpen, CheckCircle } from "lucide-react";
-import { Complaint, ComplaintResponse } from '../hooks/useAdminDashboard';
+import { Complaint, ComplaintResponse, useAdminDashboard } from '../hooks/useAdminDashboard';
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ComplaintsPanelProps {
   complaints: Complaint[];
@@ -32,6 +33,7 @@ const ComplaintsPanel: React.FC<ComplaintsPanelProps> = ({ complaints, loading, 
   const [responding, setResponding] = useState(false);
   const [responses, setResponses] = useState<ComplaintResponse[]>([]);
   const { toast } = useToast();
+  const { updateComplaintStatus, respondToComplaint, fetchComplaintResponses } = useAdminDashboard();
   
   const form = useForm<ResponseFormData>({
     defaultValues: {
@@ -46,33 +48,22 @@ const ComplaintsPanel: React.FC<ComplaintsPanelProps> = ({ complaints, loading, 
     
     // If status is 'pending', change to 'read'
     if (complaint.status === 'pending') {
-      await updateComplaintStatus(complaint.id, 'read');
+      await handleUpdateStatus(complaint.id, 'read');
     }
     
     // Load any existing responses
-    const complaintResponses = await fetchComplaintResponses(complaint.id);
+    const complaintResponses = await handleFetchResponses(complaint.id);
     setResponses(complaintResponses);
   };
 
-  const updateComplaintStatus = async (id: string, status: string) => {
+  const handleUpdateStatus = async (id: string, status: string) => {
     setUpdateLoading(true);
     try {
-      const { data, error } = await fetch('/api/update-complaint-status', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ id, status })
-      }).then(res => res.json());
-
-      if (error) throw new Error(error);
+      const success = await updateComplaintStatus(id, status);
+      
+      if (!success) throw new Error('Failed to update status');
       
       // Update the complaint in the list
-      const updatedComplaints = complaints.map(c => 
-        c.id === id ? { ...c, status } : c
-      );
-      
-      // Update selected complaint if it's open
       if (selectedComplaint?.id === id) {
         setSelectedComplaint({ ...selectedComplaint, status });
       }
@@ -97,14 +88,16 @@ const ComplaintsPanel: React.FC<ComplaintsPanelProps> = ({ complaints, loading, 
     }
   };
 
-  const fetchComplaintResponses = async (complaintId: string): Promise<ComplaintResponse[]> => {
+  const handleFetchResponses = async (complaintId: string): Promise<ComplaintResponse[]> => {
     try {
-      const { data, error } = await fetch(`/api/complaint-responses?complaintId=${complaintId}`).then(res => res.json());
-      
-      if (error) throw new Error(error);
-      return data || [];
-    } catch (error) {
-      console.error('Error fetching complaint responses:', error);
+      // Call the edge function to get responses
+      return await fetchComplaintResponses(complaintId);
+    } catch (error: any) {
+      toast({
+        title: 'Error saat mengambil respons',
+        description: error.message,
+        variant: 'destructive',
+      });
       return [];
     }
   };
@@ -114,22 +107,17 @@ const ComplaintsPanel: React.FC<ComplaintsPanelProps> = ({ complaints, loading, 
     
     setResponding(true);
     try {
-      const { data, error } = await fetch('/api/respond-to-complaint', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          complaintId: selectedComplaint.id,
-          responseText: formData.response,
-          adminName: formData.adminName
-        })
-      }).then(res => res.json());
-
-      if (error) throw new Error(error);
+      const success = await respondToComplaint(
+        selectedComplaint.id, 
+        formData.response,
+        formData.adminName
+      );
       
-      // Add new response to the list
-      setResponses([...responses, data]);
+      if (!success) throw new Error('Failed to send response');
+      
+      // Fetch updated responses
+      const updatedResponses = await handleFetchResponses(selectedComplaint.id);
+      setResponses(updatedResponses);
       
       // Update complaint status
       if (selectedComplaint) {
@@ -342,7 +330,7 @@ const ComplaintsPanel: React.FC<ComplaintsPanelProps> = ({ complaints, loading, 
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => updateComplaintStatus(selectedComplaint.id, 'pending')}
+                          onClick={() => handleUpdateStatus(selectedComplaint.id, 'pending')}
                           disabled={selectedComplaint.status === 'pending' || updateLoading || responding}
                         >
                           <Mail className="mr-1 h-4 w-4" /> Pending
@@ -351,7 +339,7 @@ const ComplaintsPanel: React.FC<ComplaintsPanelProps> = ({ complaints, loading, 
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => updateComplaintStatus(selectedComplaint.id, 'read')}
+                          onClick={() => handleUpdateStatus(selectedComplaint.id, 'read')}
                           disabled={selectedComplaint.status === 'read' || updateLoading || responding}
                         >
                           <MailOpen className="mr-1 h-4 w-4" /> Dibaca
