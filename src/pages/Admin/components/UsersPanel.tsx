@@ -31,9 +31,9 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
 
   useEffect(() => {
     // Log the number of users received in props
-    console.log(`UsersPanel received ${users.length} users`);
+    console.log(`UsersPanel received ${users?.length || 0} users`);
     
-    if (users.length > 0) {
+    if (users && users.length > 0) {
       fetchUserStats();
     }
   }, [users]);
@@ -61,6 +61,8 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
   };
 
   const fetchUserStats = async () => {
+    if (!users || users.length === 0) return;
+    
     setLoadingStats(true);
     try {
       console.log("Fetching user stats...");
@@ -126,6 +128,9 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
       return 'Invalid date';
     }
   };
+  
+  // Safely handle the case where users might be undefined
+  const displayUsers = users || [];
 
   return (
     <Card>
@@ -169,14 +174,14 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.length === 0 ? (
+              {displayUsers.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center">
                     Belum ada pengguna
                   </TableCell>
                 </TableRow>
               ) : (
-                users.map((user) => (
+                displayUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.username}</TableCell>
                     <TableCell>{user.email}</TableCell>
@@ -201,7 +206,7 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
           </Table>
         )}
 
-        {(!showAll && users.length > 0 && onRefresh) && (
+        {(!showAll && displayUsers.length > 0 && onRefresh) && (
           <div className="mt-4 flex justify-center">
             <Button variant="outline" onClick={onRefresh}>
               Lihat Semua Pengguna

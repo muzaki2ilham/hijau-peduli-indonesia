@@ -4,6 +4,7 @@
 import { useComplaints } from "./useComplaints";
 import { useServiceRequests } from "./useServiceRequests";
 import { useUserProfiles } from "./useUserProfiles";
+import { useEffect } from "react";
 export type { Complaint, ServiceRequest, UserProfile, ComplaintResponse } from "./types";
 
 export const useAdminDashboard = () => {
@@ -30,11 +31,23 @@ export const useAdminDashboard = () => {
     fetchUserProfiles
   } = useUserProfiles();
 
+  // Fetch data when the component is mounted
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
   const fetchDashboardData = async () => {
-    await Promise.all([
-      fetchRecentComplaints(),
-      fetchRecentRequests()
-    ]);
+    try {
+      console.log("Fetching all dashboard data...");
+      await Promise.all([
+        fetchRecentComplaints(),
+        fetchRecentRequests(),
+        fetchUserProfiles()
+      ]);
+      console.log("Dashboard data fetched successfully");
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    }
   };
 
   return {
@@ -55,7 +68,7 @@ export const useAdminDashboard = () => {
     fetchUserProfiles,
 
     // General
-    loading: complaintsLoading || requestsLoading,
+    loading: complaintsLoading || requestsLoading || usersLoading,
     fetchDashboardData,
   };
 };

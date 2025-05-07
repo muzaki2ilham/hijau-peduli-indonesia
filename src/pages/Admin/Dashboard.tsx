@@ -36,10 +36,17 @@ const AdminDashboard: React.FC = () => {
   const [allRequests, setAllRequests] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   useEffect(() => {
-    checkAdminStatus();
-    console.log("Dashboard mounted, fetching data...");
+    const init = async () => {
+      await checkAdminStatus();
+      console.log("Dashboard mounted, fetching data...");
+      await fetchDashboardData();
+      setIsInitialLoading(false);
+    };
+    
+    init();
   }, []);
 
   useEffect(() => {
@@ -110,11 +117,23 @@ const AdminDashboard: React.FC = () => {
     navigate('/auth');
   };
 
+  // Show loading indicator while checking admin status and fetching initial data
+  if (isInitialLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 p-6 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+      </div>
+    );
+  }
+
   // Only show content if user is admin
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 p-6 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto mb-4" />
+          <p>Memeriksa hak akses...</p>
+        </div>
       </div>
     );
   }

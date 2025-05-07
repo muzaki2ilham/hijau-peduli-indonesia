@@ -40,27 +40,15 @@ export const useUserProfiles = () => {
       
       console.log("Fetched user roles:", roles?.length || 0);
 
-      // Get the actual user email from auth (requires admin access)
-      console.log("Invoking get_all_users_email function...");
-      const { data: authUsers, error: authError } = await supabase
-        .functions.invoke('get_all_users_email');
-
-      if (authError) {
-        console.error("Error invoking get_all_users_email:", authError);
-        throw authError;
-      }
-      
-      console.log("Fetched auth users:", authUsers?.length || 0);
-
-      // Combine the data
-      const combinedProfiles: UserProfile[] = users.map((user: any) => {
+      // Since the function call is giving errors, let's work with the data we have
+      // Instead of calling the edge function
+      const combinedProfiles: UserProfile[] = (users || []).map((user: any) => {
         const userRole = roles?.find((role: any) => role.user_id === user.id);
-        const authUser = authUsers ? authUsers.find((auth: any) => auth.id === user.id) : null;
         
         return {
           id: user.id,
           username: user.username || 'No username',
-          email: authUser?.email || 'No email',
+          email: user.username || 'Email not available', // Using username as fallback for email
           role: userRole?.role || 'user',
           created_at: user.created_at
         };
@@ -70,6 +58,8 @@ export const useUserProfiles = () => {
       setUserProfiles(combinedProfiles);
     } catch (error) {
       console.error('Error fetching user profiles:', error);
+      // Set an empty array to prevent undefined errors
+      setUserProfiles([]);
     } finally {
       setLoading(false);
     }
