@@ -65,9 +65,9 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
     
     setLoadingStats(true);
     try {
-      console.log("Fetching user stats...");
+      console.log("Fetching user stats for", users.length, "users");
       
-      // Count complaints for each user
+      // Count complaints for each user - get all complaints with no filtering
       const { data: complaintsData, error: complaintsError } = await supabase
         .from('complaints')
         .select('user_id');
@@ -92,7 +92,7 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
         setUserComplaints(complaints);
       }
 
-      // Count service requests for each user
+      // Count service requests for each user - get all requests with no filtering
       const { data: requestsData, error: requestsError } = await supabase
         .from('service_requests')
         .select('user_id');
@@ -133,6 +133,8 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
   
   // Safely handle the case where users might be undefined
   const displayUsers = users || [];
+  
+  console.log("UsersPanel rendering with:", displayUsers.length, "users");
 
   return (
     <Card>

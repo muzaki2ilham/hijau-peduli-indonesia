@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Complaint, ComplaintResponse } from "./types";
@@ -14,14 +13,13 @@ export const useComplaints = () => {
   const fetchRecentComplaints = async () => {
     setLoading(true);
     try {
-      console.log("Fetching recent complaints...");
+      console.log("Fetching ALL complaints...");
       
-      // Fetch recent complaints - limited to 5 most recent
+      // Fetch ALL complaints without limit
       const { data: complaints, error: complaintsError } = await supabase
         .from('complaints')
         .select('*')
-        .order('created_at', { ascending: false })
-        .limit(5);
+        .order('created_at', { ascending: false });
 
       if (complaintsError) {
         console.error("Error fetching complaints:", complaintsError);

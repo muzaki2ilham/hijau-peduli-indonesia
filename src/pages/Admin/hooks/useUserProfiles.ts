@@ -14,9 +14,9 @@ export const useUserProfiles = () => {
   const fetchUserProfiles = async () => {
     setLoading(true);
     try {
-      console.log("Fetching user profiles...");
+      console.log("Fetching ALL user profiles...");
       
-      // Fetch all profiles
+      // Fetch all profiles with no limit
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*');
@@ -47,7 +47,7 @@ export const useUserProfiles = () => {
         return {
           id: profile.id || '',
           username: profile.username || 'No username',
-          email: profile.username || 'Email not available', // Using username as fallback for email
+          email: profile.email || profile.username || 'Email not available',
           role: userRole?.role || 'user',
           created_at: profile.created_at || new Date().toISOString()
         };
