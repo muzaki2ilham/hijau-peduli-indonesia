@@ -67,45 +67,53 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
     try {
       console.log("Fetching user stats...");
       
-      // Fetch complaints count for each user - Fix for type instantiation error
+      // Count complaints for each user
       const { data: complaintsData, error: complaintsError } = await supabase
         .from('complaints')
-        .select('user_id, count')
-        .not('user_id', 'is', null);
+        .select('user_id');
       
       if (complaintsError) {
         console.error("Error fetching complaints stats:", complaintsError);
-        // Don't throw error, just log it and continue
       } else {
-        console.log("Fetched complaints stats:", complaintsData?.length || 0);
-
+        console.log("Fetched complaints data:", complaintsData?.length || 0);
+        
+        // Count by user ID
         const complaints: Record<string, number> = {};
-        complaintsData?.forEach((item: any) => {
-          if (item.user_id) {
-            complaints[item.user_id] = parseInt(item.count || '0');
+        users.forEach(user => {
+          complaints[user.id] = 0; // Initialize with 0
+        });
+        
+        complaintsData?.forEach((complaint: any) => {
+          if (complaint.user_id) {
+            complaints[complaint.user_id] = (complaints[complaint.user_id] || 0) + 1;
           }
         });
+        
         setUserComplaints(complaints);
       }
 
-      // Fetch service requests count for each user - Fix for type instantiation error
+      // Count service requests for each user
       const { data: requestsData, error: requestsError } = await supabase
         .from('service_requests')
-        .select('user_id, count')
-        .not('user_id', 'is', null);
+        .select('user_id');
 
       if (requestsError) {
         console.error("Error fetching requests stats:", requestsError);
-        // Don't throw error, just log it and continue
       } else {
-        console.log("Fetched requests stats:", requestsData?.length || 0);
-
+        console.log("Fetched requests data:", requestsData?.length || 0);
+        
+        // Count by user ID
         const requests: Record<string, number> = {};
-        requestsData?.forEach((item: any) => {
-          if (item.user_id) {
-            requests[item.user_id] = parseInt(item.count || '0');
+        users.forEach(user => {
+          requests[user.id] = 0; // Initialize with 0
+        });
+        
+        requestsData?.forEach((request: any) => {
+          if (request.user_id) {
+            requests[request.user_id] = (requests[request.user_id] || 0) + 1;
           }
         });
+        
         setUserRequests(requests);
       }
     } catch (error) {

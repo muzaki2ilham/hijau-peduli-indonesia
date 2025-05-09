@@ -16,7 +16,7 @@ export const useComplaints = () => {
     try {
       console.log("Fetching recent complaints...");
       
-      // Fetch recent complaints
+      // Fetch recent complaints - limited to 5 most recent
       const { data: complaints, error: complaintsError } = await supabase
         .from('complaints')
         .select('*')
@@ -32,6 +32,7 @@ export const useComplaints = () => {
       setRecentComplaints(complaints || []);
     } catch (error) {
       console.error('Error fetching complaints:', error);
+      setRecentComplaints([]);
     } finally {
       setLoading(false);
     }
@@ -40,7 +41,7 @@ export const useComplaints = () => {
   const fetchAllComplaints = async (): Promise<Complaint[]> => {
     try {
       console.log("Fetching all complaints...");
-      // Fetch all complaints
+      // Fetch all complaints without limit
       const { data, error } = await supabase
         .from('complaints')
         .select('*')

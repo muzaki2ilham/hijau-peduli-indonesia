@@ -34,7 +34,6 @@ const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [allComplaints, setAllComplaints] = useState([]);
   const [allRequests, setAllRequests] = useState([]);
-  const [allUsers, setAllUsers] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
@@ -44,21 +43,24 @@ const AdminDashboard: React.FC = () => {
       console.log("Dashboard mounted, fetching data...");
       await fetchDashboardData();
       setIsInitialLoading(false);
+      
+      if (activeTab === "complaints") {
+        loadAllComplaints();
+      } else if (activeTab === "requests") {
+        loadAllRequests();
+      }
     };
     
     init();
   }, []);
 
   useEffect(() => {
-    if (activeTab === "users") {
-      console.log("Setting all users:", userProfiles.length);
-      setAllUsers(userProfiles);
-    } else if (activeTab === "complaints") {
+    if (activeTab === "complaints") {
       loadAllComplaints();
     } else if (activeTab === "requests") {
       loadAllRequests();
     }
-  }, [activeTab, userProfiles]);
+  }, [activeTab]);
 
   const checkAdminStatus = async () => {
     try {
@@ -202,7 +204,7 @@ const AdminDashboard: React.FC = () => {
             
             {/* Recent Users */}
             <UsersPanel 
-              users={userProfiles.slice(0, 5)} 
+              users={userProfiles} 
               loading={usersLoading} 
               onRefresh={() => setActiveTab("users")}
             />
@@ -223,7 +225,7 @@ const AdminDashboard: React.FC = () => {
           />
         ) : activeTab === "users" ? (
           <UsersPanel 
-            users={allUsers} 
+            users={userProfiles} 
             loading={usersLoading} 
             showAll={true}
             onRefresh={fetchUserProfiles}

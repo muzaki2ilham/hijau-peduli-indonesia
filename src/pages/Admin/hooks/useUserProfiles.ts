@@ -16,10 +16,10 @@ export const useUserProfiles = () => {
     try {
       console.log("Fetching user profiles...");
       
-      // Fetch all users with their profiles
+      // Fetch all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, username, created_at');
+        .select('*');
 
       if (profilesError) {
         console.error("Error fetching profiles:", profilesError);
@@ -31,7 +31,7 @@ export const useUserProfiles = () => {
       // Fetch user roles
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
-        .select('user_id, role');
+        .select('*');
 
       if (rolesError) {
         console.error("Error fetching user roles:", rolesError);
@@ -45,11 +45,11 @@ export const useUserProfiles = () => {
         const userRole = roles?.find((role: any) => role.user_id === profile.id);
         
         return {
-          id: profile.id,
+          id: profile.id || '',
           username: profile.username || 'No username',
           email: profile.username || 'Email not available', // Using username as fallback for email
           role: userRole?.role || 'user',
-          created_at: profile.created_at
+          created_at: profile.created_at || new Date().toISOString()
         };
       });
 
