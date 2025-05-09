@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, UserIcon, RefreshCw } from "lucide-react";
-import { UserProfile } from '../hooks/useAdminDashboard';
+import { UserProfile } from '../hooks/types';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -67,11 +67,10 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
     try {
       console.log("Fetching user stats...");
       
-      // Fetch complaints count for each user - FIX: Using correct SQL query syntax
+      // Fetch complaints count for each user - Fix for type instantiation error
       const { data: complaintsData, error: complaintsError } = await supabase
         .from('complaints')
         .select('user_id, count')
-        .eq('count', 'exact')
         .not('user_id', 'is', null);
       
       if (complaintsError) {
@@ -83,17 +82,16 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
         const complaints: Record<string, number> = {};
         complaintsData?.forEach((item: any) => {
           if (item.user_id) {
-            complaints[item.user_id] = parseInt(item.count);
+            complaints[item.user_id] = parseInt(item.count || '0');
           }
         });
         setUserComplaints(complaints);
       }
 
-      // Fetch service requests count for each user - FIX: Using correct SQL query syntax
+      // Fetch service requests count for each user - Fix for type instantiation error
       const { data: requestsData, error: requestsError } = await supabase
         .from('service_requests')
         .select('user_id, count')
-        .eq('count', 'exact')
         .not('user_id', 'is', null);
 
       if (requestsError) {
@@ -105,7 +103,7 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
         const requests: Record<string, number> = {};
         requestsData?.forEach((item: any) => {
           if (item.user_id) {
-            requests[item.user_id] = parseInt(item.count);
+            requests[item.user_id] = parseInt(item.count || '0');
           }
         });
         setUserRequests(requests);
