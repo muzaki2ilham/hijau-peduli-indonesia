@@ -16,17 +16,17 @@ export const useUserProfiles = () => {
     try {
       console.log("Fetching user profiles...");
       
-      // Fetch all users with their roles
-      const { data: users, error: usersError } = await supabase
+      // Fetch all users with their profiles
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, username, created_at');
 
-      if (usersError) {
-        console.error("Error fetching profiles:", usersError);
-        throw usersError;
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError);
+        throw profilesError;
       }
       
-      console.log("Fetched profiles:", users?.length || 0);
+      console.log("Fetched profiles:", profiles?.length || 0);
 
       // Fetch user roles
       const { data: roles, error: rolesError } = await supabase
@@ -39,18 +39,17 @@ export const useUserProfiles = () => {
       }
       
       console.log("Fetched user roles:", roles?.length || 0);
-
-      // Since the function call is giving errors, let's work with the data we have
-      // Instead of calling the edge function
-      const combinedProfiles: UserProfile[] = (users || []).map((user: any) => {
-        const userRole = roles?.find((role: any) => role.user_id === user.id);
+      
+      // Combine profiles with roles
+      const combinedProfiles: UserProfile[] = (profiles || []).map((profile: any) => {
+        const userRole = roles?.find((role: any) => role.user_id === profile.id);
         
         return {
-          id: user.id,
-          username: user.username || 'No username',
-          email: user.username || 'Email not available', // Using username as fallback for email
+          id: profile.id,
+          username: profile.username || 'No username',
+          email: profile.username || 'Email not available', // Using username as fallback for email
           role: userRole?.role || 'user',
-          created_at: user.created_at
+          created_at: profile.created_at
         };
       });
 

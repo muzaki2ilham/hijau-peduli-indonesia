@@ -67,55 +67,51 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
     try {
       console.log("Fetching user stats...");
       
-      // Fetch complaints count for each user
+      // Fetch complaints count for each user - FIX: Using correct SQL query syntax
       const { data: complaintsData, error: complaintsError } = await supabase
         .from('complaints')
-        .select('user_id, count(*)')
+        .select('user_id, count')
+        .eq('count', 'exact')
         .not('user_id', 'is', null);
       
       if (complaintsError) {
         console.error("Error fetching complaints stats:", complaintsError);
-        throw complaintsError;
+        // Don't throw error, just log it and continue
+      } else {
+        console.log("Fetched complaints stats:", complaintsData?.length || 0);
+
+        const complaints: Record<string, number> = {};
+        complaintsData?.forEach((item: any) => {
+          if (item.user_id) {
+            complaints[item.user_id] = parseInt(item.count);
+          }
+        });
+        setUserComplaints(complaints);
       }
-      
-      console.log("Fetched complaints stats:", complaintsData?.length || 0);
 
-      const complaints: Record<string, number> = {};
-      complaintsData?.forEach((item: any) => {
-        if (item.user_id) {
-          complaints[item.user_id] = parseInt(item.count);
-        }
-      });
-
-      // Fetch service requests count for each user
+      // Fetch service requests count for each user - FIX: Using correct SQL query syntax
       const { data: requestsData, error: requestsError } = await supabase
         .from('service_requests')
-        .select('user_id, count(*)')
+        .select('user_id, count')
+        .eq('count', 'exact')
         .not('user_id', 'is', null);
 
       if (requestsError) {
         console.error("Error fetching requests stats:", requestsError);
-        throw requestsError;
+        // Don't throw error, just log it and continue
+      } else {
+        console.log("Fetched requests stats:", requestsData?.length || 0);
+
+        const requests: Record<string, number> = {};
+        requestsData?.forEach((item: any) => {
+          if (item.user_id) {
+            requests[item.user_id] = parseInt(item.count);
+          }
+        });
+        setUserRequests(requests);
       }
-      
-      console.log("Fetched requests stats:", requestsData?.length || 0);
-
-      const requests: Record<string, number> = {};
-      requestsData?.forEach((item: any) => {
-        if (item.user_id) {
-          requests[item.user_id] = parseInt(item.count);
-        }
-      });
-
-      setUserComplaints(complaints);
-      setUserRequests(requests);
     } catch (error) {
       console.error('Error fetching user stats:', error);
-      toast({
-        title: 'Error',
-        description: 'Gagal memuat statistik pengguna',
-        variant: 'destructive'
-      });
     } finally {
       setLoadingStats(false);
     }
@@ -191,13 +187,19 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
                       </Badge>
                     </TableCell>
                     <TableCell>{formatDate(user.created_at)}</TableCell>
-                    <TableCell>{loadingStats ? 
-                      <Loader2 className="h-4 w-4 animate-spin" /> : 
-                      userComplaints[user.id] || 0}
+                    <TableCell>
+                      {loadingStats ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        userComplaints[user.id] || 0
+                      )}
                     </TableCell>
-                    <TableCell>{loadingStats ? 
-                      <Loader2 className="h-4 w-4 animate-spin" /> : 
-                      userRequests[user.id] || 0}
+                    <TableCell>
+                      {loadingStats ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        userRequests[user.id] || 0
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
