@@ -1,7 +1,6 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { UserProfile } from '../../hooks/types';
 import { Loader2 } from "lucide-react";
 
 interface UserStatsLoaderProps {
@@ -21,7 +20,7 @@ export const UserStatsLoader = ({ userId, type }: UserStatsLoaderProps) => {
         
         const { data, error } = await supabase
           .from(tableName)
-          .select('user_id')
+          .select('id') // Only select the id field to improve performance
           .eq('user_id', userId);
 
         if (error) {

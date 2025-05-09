@@ -16,7 +16,7 @@ export const useUserProfiles = () => {
     try {
       console.log("Fetching ALL user profiles...");
       
-      // Fetch all profiles with no limit
+      // First, fetch all profiles without any filters
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*');
@@ -28,7 +28,7 @@ export const useUserProfiles = () => {
       
       console.log("Fetched profiles:", profiles?.length || 0);
 
-      // Fetch user roles
+      // Then fetch all user roles
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
         .select('*');
@@ -42,6 +42,7 @@ export const useUserProfiles = () => {
       
       // Combine profiles with roles
       const combinedProfiles: UserProfile[] = (profiles || []).map((profile: any) => {
+        // Find the role for this user if it exists
         const userRole = roles?.find((role: any) => role.user_id === profile.id);
         
         return {

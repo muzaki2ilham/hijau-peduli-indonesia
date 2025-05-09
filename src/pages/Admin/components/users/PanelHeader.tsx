@@ -15,7 +15,7 @@ export const PanelHeader = ({ showAll, onRefresh, isRefreshing }: PanelHeaderPro
     <div className="flex justify-between items-center">
       <CardTitle className="text-xl flex items-center">
         <UserIcon className="mr-2 h-5 w-5 text-purple-500" />
-        {showAll ? "Semua Pengguna" : "Pengguna Terbaru"}
+        {showAll ? "Semua Pengguna" : "Pengguna Terdaftar"}
       </CardTitle>
       
       <Button 
