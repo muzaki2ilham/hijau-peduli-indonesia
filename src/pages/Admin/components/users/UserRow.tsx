@@ -21,6 +21,7 @@ export const UserRow = ({ user }: UserRowProps) => {
 
   return (
     <TableRow>
+      <TableCell>{user.id.substring(0, 8)}</TableCell>
       <TableCell className="font-medium">{user.username}</TableCell>
       <TableCell>{user.email}</TableCell>
       <TableCell>

@@ -10,6 +10,7 @@ interface RequestsTableProps {
   requests: ServiceRequest[];
   onViewRequest: (request: ServiceRequest) => void;
   loading: boolean;
+  showId?: boolean;
 }
 
 const getStatusBadgeVariant = (status: string) => {
@@ -25,11 +26,12 @@ const getStatusBadgeVariant = (status: string) => {
   }
 };
 
-const RequestsTable: React.FC<RequestsTableProps> = ({ requests, onViewRequest, loading }) => {
+const RequestsTable: React.FC<RequestsTableProps> = ({ requests, onViewRequest, loading, showId = false }) => {
   return (
     <Table>
       <TableHeader>
         <TableRow>
+          {showId && <TableHead>ID</TableHead>}
           <TableHead>Nama</TableHead>
           <TableHead>Jenis</TableHead>
           <TableHead>Status</TableHead>
@@ -39,13 +41,14 @@ const RequestsTable: React.FC<RequestsTableProps> = ({ requests, onViewRequest, 
       <TableBody>
         {requests.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={4} className="text-center">
+            <TableCell colSpan={showId ? 5 : 4} className="text-center">
               Belum ada permohonan layanan
             </TableCell>
           </TableRow>
         ) : (
           requests.map((request) => (
             <TableRow key={request.id}>
+              {showId && <TableCell>{request.id.substring(0, 8)}</TableCell>}
               <TableCell className="font-medium">{request.name}</TableCell>
               <TableCell>{request.service_type}</TableCell>
               <TableCell>

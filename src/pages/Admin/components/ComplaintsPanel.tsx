@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -8,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
-import { Loader2, Eye, MessageSquare, Mail, MailOpen, CheckCircle } from "lucide-react";
+import { Loader2, Eye, MessageSquare, Mail, MailOpen, CheckCircle, RefreshCw } from "lucide-react";
 import { Complaint, ComplaintResponse, useAdminDashboard } from '../hooks/useAdminDashboard';
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -32,6 +31,9 @@ const ComplaintsPanel: React.FC<ComplaintsPanelProps> = ({ complaints, loading, 
   const [updateLoading, setUpdateLoading] = useState(false);
   const [responding, setResponding] = useState(false);
   const [responses, setResponses] = useState<ComplaintResponse[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const itemsPerPage = 5;
   const { toast } = useToast();
   const { updateComplaintStatus, respondToComplaint, fetchComplaintResponses } = useAdminDashboard();
   
@@ -160,64 +162,189 @@ const ComplaintsPanel: React.FC<ComplaintsPanelProps> = ({ complaints, loading, 
     }
   };
 
+  // Calculate pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentComplaints = complaints.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(complaints.length / itemsPerPage);
+
+  // Handle refresh with loading state
+  const handleRefresh = async () => {
+    if (onRefresh) {
+      setIsRefreshing(true);
+      try {
+        await onRefresh();
+        toast({
+          title: 'Data diperbarui',
+          description: 'Data pengaduan telah diperbarui',
+        });
+      } catch (error) {
+        console.error('Error refreshing data:', error);
+        toast({
+          title: 'Error',
+          description: 'Gagal memperbarui data',
+          variant: 'destructive'
+        });
+      } finally {
+        setIsRefreshing(false);
+      }
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl flex items-center">
-          <MessageSquare className="mr-2 h-5 w-5 text-green-500" />
-          {showAll ? "Semua Pengaduan" : "Pengaduan Terbaru"}
-        </CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-xl flex items-center">
+            <MessageSquare className="mr-2 h-5 w-5 text-green-500" />
+            {showAll ? "Data Pengaduan" : "Pengaduan Terbaru"}
+          </CardTitle>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            {isRefreshing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            <span className="ml-1">Refresh</span>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
-        {loading ? (
+        {loading || isRefreshing ? (
           <div className="flex justify-center p-4">
             <Loader2 className="h-8 w-8 animate-spin text-green-600" />
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nama</TableHead>
-                <TableHead>Jenis</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {complaints.length === 0 ? (
+          <div>
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center">
-                    Belum ada pengaduan
-                  </TableCell>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Nama</TableHead>
+                  <TableHead>Jenis</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
-              ) : (
-                complaints.map((complaint) => (
-                  <TableRow key={complaint.id}>
-                    <TableCell className="font-medium">{complaint.name}</TableCell>
-                    <TableCell>{complaint.complaint_type}</TableCell>
-                    <TableCell>
-                      <Badge variant={
-                        complaint.status === "pending" ? "outline" :
-                        complaint.status === "read" ? "secondary" :
-                        complaint.status === "responded" ? "default" : "destructive"
-                      } className="flex items-center gap-1">
-                        {getStatusIcon(complaint.status)} {complaint.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleViewComplaint(complaint)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
+              </TableHeader>
+              <TableBody>
+                {currentComplaints.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">
+                      Belum ada pengaduan
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  currentComplaints.map((complaint) => (
+                    <TableRow key={complaint.id}>
+                      <TableCell>{complaint.id.substring(0, 8)}</TableCell>
+                      <TableCell className="font-medium">{complaint.name}</TableCell>
+                      <TableCell>{complaint.complaint_type}</TableCell>
+                      <TableCell>
+                        <Badge variant={
+                          complaint.status === "pending" ? "outline" :
+                          complaint.status === "read" ? "secondary" :
+                          complaint.status === "responded" ? "default" : "destructive"
+                        } className="flex items-center gap-1">
+                          {getStatusIcon(complaint.status)} {complaint.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleViewComplaint(complaint)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+            
+            {complaints.length > 0 && totalPages > 1 && (
+              <Pagination className="mt-4">
+                <PaginationContent>
+                  {currentPage > 1 && (
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(currentPage - 1);
+                        }} 
+                      />
+                    </PaginationItem>
+                  )}
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(pageNum => 
+                      pageNum <= 2 || 
+                      pageNum > totalPages - 2 || 
+                      (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                    )
+                    .map((pageNum, i, arr) => {
+                      // Add ellipsis
+                      if (i > 0 && arr[i - 1] !== pageNum - 1) {
+                        return (
+                          <React.Fragment key={`ellipsis-${pageNum}`}>
+                            <PaginationItem>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                            <PaginationItem>
+                              <PaginationLink 
+                                href="#" 
+                                isActive={currentPage === pageNum}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setCurrentPage(pageNum);
+                                }}
+                              >
+                                {pageNum}
+                              </PaginationLink>
+                            </PaginationItem>
+                          </React.Fragment>
+                        );
+                      }
+                      return (
+                        <PaginationItem key={`page-${pageNum}`}>
+                          <PaginationLink 
+                            href="#" 
+                            isActive={currentPage === pageNum}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setCurrentPage(pageNum);
+                            }}
+                          >
+                            {pageNum}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    })
+                  }
+                  
+                  {currentPage < totalPages && (
+                    <PaginationItem>
+                      <PaginationNext 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(currentPage + 1);
+                        }} 
+                      />
+                    </PaginationItem>
+                  )}
+                </PaginationContent>
+              </Pagination>
+            )}
+          </div>
         )}
 
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
