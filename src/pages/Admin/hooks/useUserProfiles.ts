@@ -41,8 +41,8 @@ export const useUserProfiles = () => {
       
       console.log("Fetched user roles:", roles?.length || 0);
       
-      // Additional fetch to get emails from auth.users via an edge function
-      // This ensures we have complete user data including emails
+      // Fetch emails from auth.users via our get_all_users_email edge function
+      // This ensures we can see emails for all users
       const { data: emails, error: emailsError } = await supabase
         .functions.invoke('get_all_users_email');
         
@@ -50,6 +50,7 @@ export const useUserProfiles = () => {
         console.error("Error fetching user emails:", emailsError);
       }
       
+      // Create a map of user ids to emails for easier lookup
       const emailsMap = emails ? new Map(emails.map((user: any) => [user.id, user.email])) : new Map();
       console.log("Fetched emails for users:", emailsMap.size);
       

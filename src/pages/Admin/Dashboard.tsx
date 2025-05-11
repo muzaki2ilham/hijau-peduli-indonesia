@@ -47,6 +47,8 @@ const AdminDashboard: React.FC = () => {
         loadAllComplaints();
       } else if (activeTab === "requests") {
         loadAllRequests();
+      } else if (activeTab === "users") {
+        fetchUserProfiles();
       }
     };
     
@@ -203,11 +205,11 @@ const AdminDashboard: React.FC = () => {
               />
             </div>
             
-            {/* User Profiles - Show all users on the dashboard */}
+            {/* User Profiles - Now explicitly showing all users */}
             <UsersPanel 
               users={userProfiles} 
               loading={usersLoading} 
-              onRefresh={() => setActiveTab("users")}
+              onRefresh={fetchUserProfiles}
             />
           </div>
         ) : activeTab === "complaints" ? (
