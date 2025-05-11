@@ -12,6 +12,15 @@ import { Complaint, ComplaintResponse, useAdminDashboard } from '../hooks/useAdm
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationEllipsis, 
+  PaginationItem, 
+  PaginationLink, 
+  PaginationNext, 
+  PaginationPrevious 
+} from "@/components/ui/pagination";
 
 interface ComplaintsPanelProps {
   complaints: Complaint[];
