@@ -42,12 +42,12 @@ export const useUserProfiles = () => {
       console.log("Fetched user roles:", roles?.length || 0);
       
       // Fetch emails from auth.users via our get_all_users_email edge function
-      // This ensures we can see emails for all users
       const { data: emails, error: emailsError } = await supabase
         .functions.invoke('get_all_users_email');
         
       if (emailsError) {
         console.error("Error fetching user emails:", emailsError);
+        throw emailsError;
       }
       
       console.log("Raw emails data:", emails);
@@ -60,7 +60,7 @@ export const useUserProfiles = () => {
       const combinedProfiles: UserProfile[] = (profiles || []).map((profile: any) => {
         // Find the role for this user if it exists
         const userRole = roles?.find((role: any) => role.user_id === profile.id);
-        // Get email from the emails map or fallback to username
+        // Get email from the emails map
         const email = emailsMap.get(profile.id) || profile.email || profile.username || 'Email not available';
         
         return {

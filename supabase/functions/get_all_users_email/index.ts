@@ -70,7 +70,7 @@ serve(async (req) => {
 
     console.log("Admin access verified, fetching users...");
     
-    // Get all users with their emails using service role
+    // Get all users with their emails using admin.listUsers
     const { data: users, error: usersError } = await supabaseClient.auth.admin.listUsers()
     
     if (usersError) {
@@ -78,7 +78,7 @@ serve(async (req) => {
       throw usersError
     }
 
-    console.log(`Retrieved ${users?.users?.length || 0} users`);
+    console.log(`Retrieved ${users?.users?.length || 0} users from auth`);
 
     // Return just the id and email for each user
     const usersWithEmail: User[] = users.users.map(u => ({
