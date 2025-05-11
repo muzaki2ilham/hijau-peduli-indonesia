@@ -10,12 +10,29 @@ interface User {
 }
 
 serve(async (req) => {
+  // Add CORS headers for browser clients
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
+
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   try {
     // Create a Supabase client with the Auth context of the logged in user
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+      { 
+        global: { 
+          headers: { 
+            Authorization: req.headers.get('Authorization')! 
+          } 
+        } 
+      }
     )
 
     // Check if the user is an admin
@@ -24,10 +41,13 @@ serve(async (req) => {
     } = await supabaseClient.auth.getUser()
     
     if (!user) {
-      return new Response(JSON.stringify({ error: 'Not authenticated' }), {
-        headers: { 'Content-Type': 'application/json' },
-        status: 401,
-      })
+      return new Response(
+        JSON.stringify({ error: 'Not authenticated' }), 
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401,
+        }
+      )
     }
     
     // Verify user has admin role
@@ -39,18 +59,26 @@ serve(async (req) => {
       .single()
     
     if (roleError || !roleData) {
-      return new Response(JSON.stringify({ error: 'Not authorized' }), {
-        headers: { 'Content-Type': 'application/json' },
-        status: 403,
-      })
+      return new Response(
+        JSON.stringify({ error: 'Not authorized' }), 
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 403,
+        }
+      )
     }
 
+    console.log("Admin access verified, fetching users...");
+    
     // Get all users with their emails using service role
     const { data: users, error: usersError } = await supabaseClient.auth.admin.listUsers()
     
     if (usersError) {
+      console.error("Error fetching users:", usersError);
       throw usersError
     }
+
+    console.log(`Retrieved ${users?.users?.length || 0} users`);
 
     // Return just the id and email for each user
     const usersWithEmail: User[] = users.users.map(u => ({
@@ -58,14 +86,21 @@ serve(async (req) => {
       email: u.email || ''
     }))
 
-    return new Response(JSON.stringify(usersWithEmail), {
-      headers: { 'Content-Type': 'application/json' },
-      status: 200,
-    })
+    return new Response(
+      JSON.stringify(usersWithEmail), 
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    )
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { 'Content-Type': 'application/json' },
-      status: 500,
-    })
+    console.error("Function error:", error.message);
+    return new Response(
+      JSON.stringify({ error: error.message }), 
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      }
+    )
   }
 })

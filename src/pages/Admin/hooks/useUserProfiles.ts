@@ -50,6 +50,8 @@ export const useUserProfiles = () => {
         console.error("Error fetching user emails:", emailsError);
       }
       
+      console.log("Raw emails data:", emails);
+      
       // Create a map of user ids to emails for easier lookup
       const emailsMap = emails ? new Map(emails.map((user: any) => [user.id, user.email])) : new Map();
       console.log("Fetched emails for users:", emailsMap.size);
