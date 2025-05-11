@@ -1,36 +1,71 @@
 
-import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
+// This edge function safely retrieves emails for all users
+// Only accessible by admin users through RLS
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.43.1'
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+interface User {
+  id: string;
+  email: string;
+}
 
 serve(async (req) => {
-  // Initialize Supabase client with service role key
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
-  
   try {
-    // Fetch all users from auth.users (only possible with service role)
-    const { data, error } = await supabase.auth.admin.listUsers();
+    // Create a Supabase client with the Auth context of the logged in user
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+    )
+
+    // Check if the user is an admin
+    const {
+      data: { user },
+    } = await supabaseClient.auth.getUser()
     
-    if (error) {
-      throw error;
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Not authenticated' }), {
+        headers: { 'Content-Type': 'application/json' },
+        status: 401,
+      })
     }
     
-    // Return only the id and email fields to minimize data exposure
-    const users = data.users.map(user => ({
-      id: user.id,
-      email: user.email
-    }));
+    // Verify user has admin role
+    const { data: roleData, error: roleError } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .single()
     
-    return new Response(JSON.stringify(users), {
+    if (roleError || !roleData) {
+      return new Response(JSON.stringify({ error: 'Not authorized' }), {
+        headers: { 'Content-Type': 'application/json' },
+        status: 403,
+      })
+    }
+
+    // Get all users with their emails using service role
+    const { data: users, error: usersError } = await supabaseClient.auth.admin.listUsers()
+    
+    if (usersError) {
+      throw usersError
+    }
+
+    // Return just the id and email for each user
+    const usersWithEmail: User[] = users.users.map(u => ({
+      id: u.id,
+      email: u.email || ''
+    }))
+
+    return new Response(JSON.stringify(usersWithEmail), {
       headers: { 'Content-Type': 'application/json' },
       status: 200,
-    });
+    })
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { 'Content-Type': 'application/json' },
       status: 500,
-    });
+    })
   }
-});
+})

@@ -19,7 +19,8 @@ export const useUserProfiles = () => {
       // First, fetch all profiles without any filters
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('*');
+        .select('*')
+        .order('created_at', { ascending: false });
 
       if (profilesError) {
         console.error("Error fetching profiles:", profilesError);
@@ -40,15 +41,29 @@ export const useUserProfiles = () => {
       
       console.log("Fetched user roles:", roles?.length || 0);
       
-      // Combine profiles with roles
+      // Additional fetch to get emails from auth.users via an edge function
+      // This ensures we have complete user data including emails
+      const { data: emails, error: emailsError } = await supabase
+        .functions.invoke('get_all_users_email');
+        
+      if (emailsError) {
+        console.error("Error fetching user emails:", emailsError);
+      }
+      
+      const emailsMap = emails ? new Map(emails.map((user: any) => [user.id, user.email])) : new Map();
+      console.log("Fetched emails for users:", emailsMap.size);
+      
+      // Combine profiles with roles and emails
       const combinedProfiles: UserProfile[] = (profiles || []).map((profile: any) => {
         // Find the role for this user if it exists
         const userRole = roles?.find((role: any) => role.user_id === profile.id);
+        // Get email from the emails map or fallback to username
+        const email = emailsMap.get(profile.id) || profile.email || profile.username || 'Email not available';
         
         return {
           id: profile.id || '',
           username: profile.username || 'No username',
-          email: profile.email || profile.username || 'Email not available',
+          email: email,
           role: userRole?.role || 'user',
           created_at: profile.created_at || new Date().toISOString()
         };

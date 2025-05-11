@@ -23,13 +23,14 @@ export const PanelHeader = ({ showAll, onRefresh, isRefreshing }: PanelHeaderPro
         size="sm" 
         onClick={onRefresh}
         disabled={isRefreshing}
+        className="flex items-center gap-1"
       >
         {isRefreshing ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
           <RefreshCw className="h-4 w-4" />
         )}
-        <span className="ml-1">Refresh</span>
+        <span>Refresh</span>
       </Button>
     </div>
   );
