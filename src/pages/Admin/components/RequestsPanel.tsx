@@ -1,22 +1,12 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Loader2, ClipboardList, RefreshCw } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { ServiceRequest } from '../hooks/types';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import RequestsTable from './requests/RequestsTable';
 import RequestDetailDialog from './requests/RequestDetailDialog';
-import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationEllipsis, 
-  PaginationItem, 
-  PaginationLink, 
-  PaginationNext, 
-  PaginationPrevious 
-} from "@/components/ui/pagination";
+import RequestsPanelHeader from './requests/RequestsPanelHeader';
+import RequestsContent from './requests/RequestsContent';
 
 interface RequestsPanelProps {
   requests: ServiceRequest[];
@@ -106,119 +96,23 @@ const RequestsPanel: React.FC<RequestsPanelProps> = ({
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-xl flex items-center">
-            <ClipboardList className="mr-2 h-5 w-5 text-blue-500" />
-            {showAll ? "Data Permohonan" : "Permohonan Layanan Terbaru"}
-          </CardTitle>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-          >
-            {isRefreshing ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4" />
-            )}
-            <span className="ml-1">Refresh</span>
-          </Button>
-        </div>
-      </CardHeader>
+      <RequestsPanelHeader
+        showAll={showAll}
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
+      />
+      
       <CardContent>
-        {loading || isRefreshing ? (
-          <div className="flex justify-center p-4">
-            <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-          </div>
-        ) : (
-          <div>
-            <RequestsTable 
-              requests={currentRequests} 
-              onViewRequest={handleViewRequest} 
-              loading={loading}
-              showId={true}
-            />
-
-            {requests.length > 0 && totalPages > 1 && (
-              <Pagination className="mt-4">
-                <PaginationContent>
-                  {currentPage > 1 && (
-                    <PaginationItem>
-                      <PaginationPrevious 
-                        href="#" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setCurrentPage(currentPage - 1);
-                        }} 
-                      />
-                    </PaginationItem>
-                  )}
-                  
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter(pageNum => 
-                      pageNum <= 2 || 
-                      pageNum > totalPages - 2 || 
-                      (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
-                    )
-                    .map((pageNum, i, arr) => {
-                      // Add ellipsis
-                      if (i > 0 && arr[i - 1] !== pageNum - 1) {
-                        return (
-                          <React.Fragment key={`ellipsis-${pageNum}`}>
-                            <PaginationItem>
-                              <PaginationEllipsis />
-                            </PaginationItem>
-                            <PaginationItem>
-                              <PaginationLink 
-                                href="#" 
-                                isActive={currentPage === pageNum}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  setCurrentPage(pageNum);
-                                }}
-                              >
-                                {pageNum}
-                              </PaginationLink>
-                            </PaginationItem>
-                          </React.Fragment>
-                        );
-                      }
-                      return (
-                        <PaginationItem key={`page-${pageNum}`}>
-                          <PaginationLink 
-                            href="#" 
-                            isActive={currentPage === pageNum}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setCurrentPage(pageNum);
-                            }}
-                          >
-                            {pageNum}
-                          </PaginationLink>
-                        </PaginationItem>
-                      );
-                    })
-                  }
-                  
-                  {currentPage < totalPages && (
-                    <PaginationItem>
-                      <PaginationNext 
-                        href="#" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setCurrentPage(currentPage + 1);
-                        }} 
-                      />
-                    </PaginationItem>
-                  )}
-                </PaginationContent>
-              </Pagination>
-            )}
-          </div>
-        )}
+        <RequestsContent
+          requests={requests}
+          currentRequests={currentRequests}
+          loading={loading}
+          isRefreshing={isRefreshing}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onViewRequest={handleViewRequest}
+          onPageChange={setCurrentPage}
+        />
 
         <RequestDetailDialog 
           selectedRequest={selectedRequest}
