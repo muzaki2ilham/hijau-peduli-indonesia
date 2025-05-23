@@ -30,13 +30,13 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
         await onRefresh();
         toast({
           title: 'Data diperbarui',
-          description: 'Data pengguna telah diperbarui',
+          description: 'Data pengguna telah berhasil diperbarui',
         });
       } catch (error) {
         console.error('Error refreshing data:', error);
         toast({
           title: 'Error',
-          description: 'Gagal memperbarui data',
+          description: 'Gagal memperbarui data pengguna',
           variant: 'destructive'
         });
       } finally {

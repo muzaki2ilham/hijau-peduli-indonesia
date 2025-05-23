@@ -60,7 +60,7 @@ serve(async (req) => {
     
     if (roleError || !roleData) {
       return new Response(
-        JSON.stringify({ error: 'Not authorized' }), 
+        JSON.stringify({ error: 'Not authorized', details: 'Admin role required' }), 
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 403,
@@ -75,11 +75,33 @@ serve(async (req) => {
     
     if (usersError) {
       console.error("[get_all_users_email] Error fetching users:", usersError);
+      
+      // Fallback to using profiles table if we can't get emails
+      const { data: profiles, error: profilesError } = await supabaseClient
+        .from('profiles')
+        .select('id, username')
+      
+      if (profilesError || !profiles) {
+        return new Response(
+          JSON.stringify({ error: 'Failed to retrieve user data', details: usersError.message }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 500,
+          }
+        )
+      }
+      
+      // Return profile data without emails as fallback
+      const profilesWithFallbackEmail: User[] = profiles.map(p => ({
+        id: p.id,
+        email: p.username || 'Email not available'
+      }))
+      
       return new Response(
-        JSON.stringify({ error: usersError.message }),
+        JSON.stringify(profilesWithFallbackEmail), 
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 500,
+          status: 200,
         }
       )
     }

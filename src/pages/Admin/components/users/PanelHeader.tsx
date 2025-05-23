@@ -15,7 +15,7 @@ export const PanelHeader = ({ showAll, onRefresh, isRefreshing }: PanelHeaderPro
     <div className="flex justify-between items-center">
       <CardTitle className="text-xl flex items-center">
         <UserIcon className="mr-2 h-5 w-5 text-purple-500" />
-        {showAll ? "Data Semua Pengguna" : "Pengguna Terdaftar"}
+        {showAll ? "Data Semua Pengguna Terdaftar" : "Pengguna Terdaftar Terbaru"}
       </CardTitle>
       
       <Button 
@@ -30,7 +30,7 @@ export const PanelHeader = ({ showAll, onRefresh, isRefreshing }: PanelHeaderPro
         ) : (
           <RefreshCw className="h-4 w-4" />
         )}
-        <span>Refresh Data</span>
+        <span>Muat Ulang Data</span>
       </Button>
     </div>
   );
