@@ -22,6 +22,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log("[get_all_users_email] Function called");
+    
     // Create a Supabase client with the Auth context of the logged in user
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -35,12 +37,13 @@ serve(async (req) => {
       }
     )
 
-    // Check if the user is an admin
+    // Check if the user is authenticated
     const {
       data: { user },
     } = await supabaseClient.auth.getUser()
     
     if (!user) {
+      console.error("[get_all_users_email] Not authenticated");
       return new Response(
         JSON.stringify({ error: 'Not authenticated' }), 
         { 
@@ -49,6 +52,8 @@ serve(async (req) => {
         }
       )
     }
+    
+    console.log("[get_all_users_email] User authenticated:", user.id);
     
     // Verify user has admin role
     const { data: roleData, error: roleError } = await supabaseClient
@@ -59,6 +64,7 @@ serve(async (req) => {
       .single()
     
     if (roleError || !roleData) {
+      console.error("[get_all_users_email] Not authorized:", roleError);
       return new Response(
         JSON.stringify({ error: 'Not authorized', details: 'Admin role required' }), 
         { 
@@ -71,7 +77,10 @@ serve(async (req) => {
     console.log("[get_all_users_email] Admin access verified, fetching users...");
     
     // Get all users with their emails using admin.listUsers
-    const { data: users, error: usersError } = await supabaseClient.auth.admin.listUsers()
+    const { data: usersData, error: usersError } = await supabaseClient.auth.admin.listUsers({
+      perPage: 1000, // Set a high limit to get all users
+      page: 1
+    });
     
     if (usersError) {
       console.error("[get_all_users_email] Error fetching users:", usersError);
@@ -106,7 +115,7 @@ serve(async (req) => {
       )
     }
 
-    if (!users || !users.users) {
+    if (!usersData || !usersData.users) {
       console.error("[get_all_users_email] No users data returned");
       return new Response(
         JSON.stringify({ error: "Failed to retrieve users data" }),
@@ -117,10 +126,10 @@ serve(async (req) => {
       )
     }
 
-    console.log(`[get_all_users_email] Retrieved ${users.users.length} users from auth`);
+    console.log(`[get_all_users_email] Retrieved ${usersData.users.length} users from auth`);
 
     // Return just the id and email for each user
-    const usersWithEmail: User[] = users.users.map(u => ({
+    const usersWithEmail: User[] = usersData.users.map(u => ({
       id: u.id,
       email: u.email || ''
     }))

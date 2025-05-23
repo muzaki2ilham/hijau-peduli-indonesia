@@ -45,10 +45,10 @@ const UsersPanel: React.FC<UsersPanelProps> = ({
     }
   };
   
-  // Safely handle the case where users might be undefined
+  // Menangani kasus di mana users mungkin undefined
   const displayUsers = users || [];
   
-  console.log("UsersPanel rendering with:", displayUsers.length, "users");
+  console.log("UsersPanel menampilkan:", displayUsers.length, "pengguna", "loading:", loading, "refreshing:", isRefreshing);
 
   return (
     <Card>
