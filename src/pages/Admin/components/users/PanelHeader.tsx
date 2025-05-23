@@ -30,7 +30,7 @@ export const PanelHeader = ({ showAll, onRefresh, isRefreshing }: PanelHeaderPro
         ) : (
           <RefreshCw className="h-4 w-4" />
         )}
-        <span>Refresh</span>
+        <span>Refresh Data</span>
       </Button>
     </div>
   );

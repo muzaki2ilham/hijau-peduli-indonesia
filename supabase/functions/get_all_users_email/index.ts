@@ -68,17 +68,34 @@ serve(async (req) => {
       )
     }
 
-    console.log("Admin access verified, fetching users...");
+    console.log("[get_all_users_email] Admin access verified, fetching users...");
     
     // Get all users with their emails using admin.listUsers
     const { data: users, error: usersError } = await supabaseClient.auth.admin.listUsers()
     
     if (usersError) {
-      console.error("Error fetching users:", usersError);
-      throw usersError
+      console.error("[get_all_users_email] Error fetching users:", usersError);
+      return new Response(
+        JSON.stringify({ error: usersError.message }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500,
+        }
+      )
     }
 
-    console.log(`Retrieved ${users?.users?.length || 0} users from auth`);
+    if (!users || !users.users) {
+      console.error("[get_all_users_email] No users data returned");
+      return new Response(
+        JSON.stringify({ error: "Failed to retrieve users data" }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500,
+        }
+      )
+    }
+
+    console.log(`[get_all_users_email] Retrieved ${users.users.length} users from auth`);
 
     // Return just the id and email for each user
     const usersWithEmail: User[] = users.users.map(u => ({
@@ -94,7 +111,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error("Function error:", error.message);
+    console.error("[get_all_users_email] Function error:", error.message);
     return new Response(
       JSON.stringify({ error: error.message }), 
       {

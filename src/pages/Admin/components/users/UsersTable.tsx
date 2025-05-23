@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
 import { UserProfile } from '../../hooks/types';
@@ -23,6 +23,10 @@ export const UsersTable = ({ users, loading }: UsersTableProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   
+  useEffect(() => {
+    console.log("UsersTable rendered with users:", users?.length || 0);
+  }, [users]);
+  
   if (loading) {
     return (
       <div className="flex justify-center p-4">
@@ -34,8 +38,8 @@ export const UsersTable = ({ users, loading }: UsersTableProps) => {
   // Calculate pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(users.length / itemsPerPage);
+  const currentUsers = users?.slice(indexOfFirstItem, indexOfLastItem) || [];
+  const totalPages = Math.ceil((users?.length || 0) / itemsPerPage);
 
   // Generate page numbers
   const pageNumbers = [];
@@ -96,7 +100,7 @@ export const UsersTable = ({ users, loading }: UsersTableProps) => {
               </TableCell>
             </TableRow>
           ) : (
-            currentUsers.map((user, index) => (
+            currentUsers.map((user) => (
               <UserRow key={user.id} user={user} />
             ))
           )}

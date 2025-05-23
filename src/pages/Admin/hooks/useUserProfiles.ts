@@ -41,19 +41,28 @@ export const useUserProfiles = () => {
       
       console.log("Fetched user roles:", roles?.length || 0);
       
-      // Fetch emails from auth.users via our get_all_users_email edge function
-      const { data: emails, error: emailsError } = await supabase
+      // Fetch emails using the edge function
+      console.log("Fetching user emails via edge function...");
+      const { data: emailsData, error: emailsError } = await supabase
         .functions.invoke('get_all_users_email');
         
       if (emailsError) {
-        console.error("Error fetching user emails:", emailsError);
+        console.error("Error invoking get_all_users_email:", emailsError);
         throw emailsError;
       }
       
-      console.log("Raw emails data:", emails);
+      if (!emailsData) {
+        console.error("No email data returned from edge function");
+        throw new Error("Failed to retrieve user emails");
+      }
+      
+      console.log("Raw emails data:", emailsData);
       
       // Create a map of user ids to emails for easier lookup
-      const emailsMap = emails ? new Map(emails.map((user: any) => [user.id, user.email])) : new Map();
+      const emailsMap = Array.isArray(emailsData) 
+        ? new Map(emailsData.map((user: any) => [user.id, user.email])) 
+        : new Map();
+      
       console.log("Fetched emails for users:", emailsMap.size);
       
       // Combine profiles with roles and emails
