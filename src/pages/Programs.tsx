@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { usePrograms } from "@/pages/Admin/hooks/usePrograms";
 
 const Programs = () => {
+  // Mengambil data program yang telah ditambahkan admin dari database
   const { programs, loading } = usePrograms();
 
   if (loading) {
@@ -16,7 +17,7 @@ const Programs = () => {
     );
   }
 
-  // Filter active programs only
+  // Hanya tampilkan program yang statusnya aktif (sesuai pengaturan admin)
   const activePrograms = programs.filter(program => program.status === 'active');
 
   return (
@@ -33,7 +34,7 @@ const Programs = () => {
 
         {activePrograms.length === 0 ? (
           <div className="text-center py-12">
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">Belum ada program tersedia</h3>
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">Belum ada program aktif tersedia</h3>
             <p className="text-gray-500">Program akan segera hadir. Silakan kembali lagi nanti.</p>
           </div>
         ) : (
@@ -55,7 +56,8 @@ const Programs = () => {
                       {program.title}
                     </CardTitle>
                     <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      {program.status === 'active' ? 'Aktif' : 'Selesai'}
+                      {program.status === 'active' ? 'Aktif' : 
+                       program.status === 'completed' ? 'Selesai' : 'Tidak Aktif'}
                     </Badge>
                   </div>
                 </CardHeader>

@@ -10,9 +10,9 @@ export const useUserProfiles = () => {
   const fetchUserProfiles = useCallback(async () => {
     setLoading(true);
     try {
-      console.log("Mengambil data profil pengguna...");
+      console.log("Mengambil data profil pengguna dari database...");
       
-      // 1. Ambil semua profil
+      // 1. Ambil semua profil dari database
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
@@ -23,9 +23,9 @@ export const useUserProfiles = () => {
         throw profilesError;
       }
       
-      console.log("Profil diambil:", profiles?.length || 0);
+      console.log("Profil dari database:", profiles?.length || 0);
 
-      // 2. Ambil semua peran pengguna
+      // 2. Ambil semua peran pengguna dari database
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
         .select('*');
@@ -35,7 +35,7 @@ export const useUserProfiles = () => {
         throw rolesError;
       }
       
-      console.log("Peran pengguna diambil:", roles?.length || 0);
+      console.log("Peran pengguna dari database:", roles?.length || 0);
       
       // Buat map untuk peran pengguna
       const rolesMap = new Map();
@@ -43,19 +43,20 @@ export const useUserProfiles = () => {
         rolesMap.set(role.user_id, role.role);
       });
       
-      // 3. Ambil semua pengguna dari auth.users melalui admin API
+      // 3. Coba ambil data auth users dari Supabase Auth
       try {
-        const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+        const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
         
         if (authError) {
-          console.error("Error mengambil data auth users:", authError);
+          console.error("Error mengambil auth users:", authError);
+          // Gunakan fallback dengan data profil saja
           throw authError;
         }
         
-        console.log("Auth users diambil:", authUsers.users?.length || 0);
+        console.log("Auth users berhasil diambil:", authData.users?.length || 0);
         
-        // 4. Gabungkan semua data
-        const combinedProfiles: UserProfile[] = authUsers.users.map((authUser: any) => {
+        // 4. Gabungkan data auth dengan profil dan peran
+        const combinedProfiles: UserProfile[] = authData.users.map((authUser: any) => {
           const profile = profiles?.find(p => p.id === authUser.id);
           
           return {
@@ -67,13 +68,13 @@ export const useUserProfiles = () => {
           };
         });
 
-        console.log("Total profil gabungan:", combinedProfiles.length);
+        console.log("Data pengguna berhasil digabungkan:", combinedProfiles.length);
         setUserProfiles(combinedProfiles);
         
       } catch (authError: any) {
-        console.error('Error dengan pengambilan auth users, menggunakan fallback:', authError.message || authError);
+        console.error('Menggunakan fallback data profil:', authError.message || authError);
         
-        // Fallback: gunakan hanya data profiles yang ada
+        // Fallback: gunakan data profil yang ada di database
         const fallbackProfiles: UserProfile[] = (profiles || []).map((profile: any) => {
           return {
             id: profile.id || '',
@@ -84,10 +85,11 @@ export const useUserProfiles = () => {
           };
         });
         
+        console.log("Menggunakan fallback data:", fallbackProfiles.length);
         setUserProfiles(fallbackProfiles);
       }
     } catch (error: any) {
-      console.error('Error mengambil profil pengguna:', error.message || error);
+      console.error('Error total mengambil profil pengguna:', error.message || error);
       setUserProfiles([]);
     } finally {
       setLoading(false);

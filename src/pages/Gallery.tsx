@@ -25,6 +25,7 @@ interface Video {
 
 const Gallery = () => {
   const [filter, setFilter] = useState("all");
+  // Mengambil data galeri yang telah ditambahkan admin dari database
   const { galleryItems, loading } = useGalleryItems();
   
   if (loading) {
@@ -35,7 +36,7 @@ const Gallery = () => {
     );
   }
 
-  // Convert gallery items to expected format
+  // Convert data galeri dari database ke format yang dibutuhkan komponen
   const photos: Photo[] = galleryItems
     .filter(item => item.type === 'photo')
     .map(item => ({
@@ -61,28 +62,47 @@ const Gallery = () => {
       <div className="max-w-6xl mx-auto">
         <GalleryHeader />
 
-        <Tabs defaultValue="photos" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
-            <TabsTrigger value="photos" className="flex items-center gap-2">
-              <Image className="h-4 w-4" /> Foto
-            </TabsTrigger>
-            <TabsTrigger value="videos" className="flex items-center gap-2">
-              <Play className="h-4 w-4" /> Video
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="photos">
-            <PhotoGrid 
-              photos={photos} 
-              filter={filter} 
-              setFilter={setFilter} 
-            />
-          </TabsContent>
-          
-          <TabsContent value="videos">
-            <VideoGrid videos={videos} />
-          </TabsContent>
-        </Tabs>
+        {galleryItems.length === 0 ? (
+          <div className="text-center py-12">
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">Belum ada konten galeri tersedia</h3>
+            <p className="text-gray-500">Galeri akan segera diisi dengan konten menarik. Silakan kembali lagi nanti.</p>
+          </div>
+        ) : (
+          <Tabs defaultValue="photos" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-8">
+              <TabsTrigger value="photos" className="flex items-center gap-2">
+                <Image className="h-4 w-4" /> Foto ({photos.length})
+              </TabsTrigger>
+              <TabsTrigger value="videos" className="flex items-center gap-2">
+                <Play className="h-4 w-4" /> Video ({videos.length})
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="photos">
+              {photos.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Belum ada foto yang ditambahkan.</p>
+                </div>
+              ) : (
+                <PhotoGrid 
+                  photos={photos} 
+                  filter={filter} 
+                  setFilter={setFilter} 
+                />
+              )}
+            </TabsContent>
+            
+            <TabsContent value="videos">
+              {videos.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Belum ada video yang ditambahkan.</p>
+                </div>
+              ) : (
+                <VideoGrid videos={videos} />
+              )}
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
     </div>
   );

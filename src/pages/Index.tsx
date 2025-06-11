@@ -16,17 +16,17 @@ const Index = () => {
   const { blogPosts, loading: blogLoading } = useBlogPosts();
   const { programs, loading: programsLoading } = usePrograms();
   
-  // Take just a few recent items for the homepage
+  // Ambil konten yang telah ditambahkan admin untuk ditampilkan di halaman utama
   const recentPhotos = galleryItems
     .filter(item => item.type === 'photo')
     .slice(0, 3);
   
   const recentPosts = blogPosts
-    .filter(post => post.published)
+    .filter(post => post.published) // Hanya tampilkan yang sudah dipublish admin
     .slice(0, 2);
     
   const activePrograms = programs
-    .filter(program => program.status === 'active')
+    .filter(program => program.status === 'active') // Hanya tampilkan program aktif
     .slice(0, 3);
 
   return (
@@ -93,7 +93,36 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Featured Content Section */}
+        {/* Program Aktif dari Admin */}
+        {!programsLoading && activePrograms.length > 0 && (
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md mb-8">
+            <h2 className="text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
+              <TreeDeciduous className="h-5 w-5" /> Program Aktif
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {activePrograms.map((program) => (
+                <div key={program.id} className="bg-white rounded-lg p-4 shadow-sm">
+                  {program.image_url && (
+                    <img 
+                      src={program.image_url} 
+                      alt={program.title}
+                      className="w-full h-32 object-cover rounded-md mb-3" 
+                    />
+                  )}
+                  <h3 className="font-semibold text-green-800 text-sm mb-2 line-clamp-2">{program.title}</h3>
+                  <p className="text-xs text-gray-600 line-clamp-2">{program.description}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 text-center">
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/programs">Lihat Semua Program</Link>
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Galeri Terbaru dari Admin */}
         {!galleryLoading && recentPhotos.length > 0 && (
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md mb-8">
             <h2 className="text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
@@ -116,6 +145,39 @@ const Index = () => {
             <div className="mt-4 text-center">
               <Button variant="outline" size="sm" asChild>
                 <Link to="/gallery">Lihat Semua Galeri</Link>
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Blog Terbaru dari Admin */}
+        {!blogLoading && recentPosts.length > 0 && (
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md mb-8">
+            <h2 className="text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
+              <BookOpen className="h-5 w-5" /> Artikel Terbaru
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {recentPosts.map((post) => (
+                <div key={post.id} className="bg-white rounded-lg p-4 shadow-sm">
+                  {post.image_url && (
+                    <img 
+                      src={post.image_url} 
+                      alt={post.title}
+                      className="w-full h-32 object-cover rounded-md mb-3" 
+                    />
+                  )}
+                  <h3 className="font-semibold text-green-800 text-sm mb-2 line-clamp-2">{post.title}</h3>
+                  <p className="text-xs text-gray-600 line-clamp-3">{post.excerpt}</p>
+                  <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+                    <span>{post.author}</span>
+                    <span>{new Date(post.created_at).toLocaleDateString('id-ID')}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 text-center">
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/blog">Lihat Semua Artikel</Link>
               </Button>
             </div>
           </div>

@@ -9,6 +9,7 @@ import { useBlogPosts } from "@/pages/Admin/hooks/useBlogPosts";
 import { BlogPost as ComponentBlogPost } from "@/components/blog/FeaturedPost";
 
 const Blog = () => {
+  // Mengambil data blog yang telah ditambahkan admin dari database
   const { blogPosts, loading } = useBlogPosts();
 
   if (loading) {
@@ -19,10 +20,10 @@ const Blog = () => {
     );
   }
 
-  // Filter published posts only
+  // Hanya tampilkan posting yang sudah dipublish oleh admin
   const publishedPosts = blogPosts.filter(post => post.published);
   
-  // Transform database posts to component format
+  // Transform data database ke format komponen
   const transformedPosts: ComponentBlogPost[] = publishedPosts.map(post => ({
     id: parseInt(post.id.slice(-8), 16), // Convert UUID to number for component
     title: post.title,
@@ -34,13 +35,13 @@ const Blog = () => {
     imageUrl: post.image_url || '/placeholder.svg'
   }));
   
-  // Get featured post (most recent published post)
+  // Get featured post (posting terbaru yang dipublish admin)
   const featuredPost = transformedPosts.length > 0 ? transformedPosts[0] : null;
   
-  // Get other posts (excluding featured)
+  // Get posting lainnya (selain featured)
   const otherPosts = transformedPosts.slice(1);
 
-  // Generate categories data for sidebar
+  // Generate data kategori untuk sidebar
   const categories = publishedPosts.reduce((acc: any[], post) => {
     const existing = acc.find(cat => cat.name === post.category);
     if (existing) {
@@ -51,7 +52,7 @@ const Blog = () => {
     return acc;
   }, []);
 
-  // Generate archives data for sidebar
+  // Generate data arsip untuk sidebar
   const archives = publishedPosts.reduce((acc: any[], post) => {
     const date = new Date(post.created_at);
     const monthYear = date.toLocaleDateString('id-ID', { year: 'numeric', month: 'long' });
@@ -69,16 +70,23 @@ const Blog = () => {
       <div className="max-w-6xl mx-auto">
         <BlogHeader />
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            {featuredPost && <FeaturedPost post={featuredPost} />}
-            <BlogPostList posts={otherPosts} />
+        {publishedPosts.length === 0 ? (
+          <div className="text-center py-12">
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">Belum ada artikel tersedia</h3>
+            <p className="text-gray-500">Artikel akan segera hadir. Silakan kembali lagi nanti.</p>
           </div>
-          
-          <div className="lg:col-span-1">
-            <BlogSidebar categories={categories} archives={archives} />
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              {featuredPost && <FeaturedPost post={featuredPost} />}
+              <BlogPostList posts={otherPosts} />
+            </div>
+            
+            <div className="lg:col-span-1">
+              <BlogSidebar categories={categories} archives={archives} />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
