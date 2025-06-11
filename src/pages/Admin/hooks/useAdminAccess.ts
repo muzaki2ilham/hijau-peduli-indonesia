@@ -1,67 +1,100 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 export const useAdminAccess = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const checkAdminStatus = async () => {
+    let isMounted = true;
+    
+    const checkAdminAccess = async () => {
       try {
-        const { data: session } = await supabase.auth.getSession();
-        if (!session.session?.user) {
-          toast({
-            title: "Akses Ditolak",
-            description: "Silakan login untuk mengakses halaman admin",
-            variant: "destructive"
-          });
-          navigate('/auth');
-          return false;
+        console.log("Checking admin access...");
+        
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          if (isMounted) {
+            setIsAdmin(false);
+            setIsInitialLoading(false);
+          }
+          return;
         }
-        
-        // Check for admin role
-        const { data, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', session.session.user.id)
-          .eq('role', 'admin')
-          .single();
-        
-        if (error || !data) {
-          toast({
-            title: "Akses Ditolak",
-            description: "Anda tidak memiliki hak akses admin",
-            variant: "destructive"
-          });
-          navigate('/');
-          return false;
+
+        if (!session?.user) {
+          console.log("No user session found");
+          if (isMounted) {
+            setIsAdmin(false);
+            setIsInitialLoading(false);
+            navigate('/auth');
+          }
+          return;
         }
+
+        console.log("User found, checking admin role...");
         
-        return true;
+        // Check if user has admin role with timeout
+        const { data: userRoles, error: roleError } = await Promise.race([
+          supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .eq('role', 'admin'),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Role check timeout')), 5000)
+          )
+        ]) as any;
+
+        if (roleError) {
+          console.error("Role check error:", roleError);
+          if (isMounted) {
+            setIsAdmin(false);
+            setIsInitialLoading(false);
+          }
+          return;
+        }
+
+        const hasAdminRole = userRoles && userRoles.length > 0;
+        console.log("Admin role check result:", hasAdminRole);
+        
+        if (isMounted) {
+          setIsAdmin(hasAdminRole);
+          setIsInitialLoading(false);
+          
+          if (!hasAdminRole) {
+            navigate('/');
+          }
+        }
       } catch (error) {
-        console.error('Error checking admin status:', error);
-        navigate('/auth');
-        return false;
+        console.error("Error checking admin access:", error);
+        if (isMounted) {
+          setIsAdmin(false);
+          setIsInitialLoading(false);
+          navigate('/');
+        }
       }
     };
 
-    const init = async () => {
-      const adminStatus = await checkAdminStatus();
-      setIsAdmin(adminStatus);
-      setIsInitialLoading(false);
-    };
+    checkAdminAccess();
     
-    init();
-  }, [navigate, toast]);
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/auth');
+    try {
+      await supabase.auth.signOut();
+      navigate('/');
+    } catch (error) {
+      console.error("Logout error:", error);
+      navigate('/');
+    }
   };
 
   return {

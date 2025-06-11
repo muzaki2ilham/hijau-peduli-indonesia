@@ -1,8 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
 import { useAdminDashboard } from './hooks/useAdminDashboard';
 import { useAdminAccess } from './hooks/useAdminAccess';
 import DashboardHeader from './components/dashboard/DashboardHeader';
@@ -18,67 +16,67 @@ const AdminDashboard: React.FC = () => {
     userProfiles,
     loading, 
     usersLoading,
+    isInitialLoading,
+    error,
     fetchUserProfiles,
     fetchAllComplaints,
     fetchAllRequests,
     fetchDashboardData
   } = useAdminDashboard();
   
-  const { isAdmin, isInitialLoading, handleLogout } = useAdminAccess();
+  const { isAdmin, isInitialLoading: authLoading, handleLogout } = useAdminAccess();
   
   const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [allComplaints, setAllComplaints] = useState([]);
   const [allRequests, setAllRequests] = useState([]);
 
+  // Handle tab changes with lazy loading
   useEffect(() => {
-    if (isAdmin) {
-      console.log("Dashboard mounted, fetching data...");
-      fetchDashboardData();
-      
-      if (activeTab === "complaints") {
-        loadAllComplaints();
-      } else if (activeTab === "requests") {
-        loadAllRequests();
-      } else if (activeTab === "users") {
-        fetchUserProfiles();
+    if (!isAdmin || isInitialLoading) return;
+    
+    const loadTabData = async () => {
+      try {
+        if (activeTab === "complaints" && allComplaints.length === 0) {
+          console.log("Loading complaints for tab...");
+          const complaints = await fetchAllComplaints();
+          setAllComplaints(complaints);
+        } else if (activeTab === "requests" && allRequests.length === 0) {
+          console.log("Loading requests for tab...");
+          const requests = await fetchAllRequests();
+          setAllRequests(requests);
+        } else if (activeTab === "users" && userProfiles.length === 0) {
+          console.log("Loading users for tab...");
+          await fetchUserProfiles();
+        }
+      } catch (error) {
+        console.error("Error loading tab data:", error);
       }
-    }
-  }, [isAdmin]);
+    };
 
-  useEffect(() => {
-    if (isAdmin) {
-      if (activeTab === "complaints") {
-        loadAllComplaints();
-      } else if (activeTab === "requests") {
-        loadAllRequests();
-      } else if (activeTab === "users") {
-        fetchUserProfiles();
-      }
-    }
-  }, [activeTab, isAdmin]);
+    loadTabData();
+  }, [activeTab, isAdmin, isInitialLoading]);
 
-  const loadAllComplaints = async () => {
-    console.log("Loading all complaints...");
-    const complaints = await fetchAllComplaints();
-    console.log("Loaded complaints:", complaints.length);
-    setAllComplaints(complaints);
+  const handleRetry = () => {
+    window.location.reload();
   };
 
-  const loadAllRequests = async () => {
-    console.log("Loading all requests...");
-    const requests = await fetchAllRequests();
-    console.log("Loaded requests:", requests.length);
-    setAllRequests(requests);
-  };
-
-  // Show loading indicator while checking admin status and fetching initial data
-  if (isInitialLoading) {
-    return <LoadingScreen />;
+  // Show loading indicator while checking admin status
+  if (authLoading) {
+    return <LoadingScreen message="Memeriksa hak akses..." />;
   }
 
   // Only show content if user is admin
   if (!isAdmin) {
-    return <LoadingScreen />;
+    return <LoadingScreen message="Mengarahkan..." />;
+  }
+
+  // Show loading for initial data fetch
+  if (isInitialLoading) {
+    return <LoadingScreen 
+      message="Memuat dashboard..." 
+      error={error} 
+      onRetry={handleRetry}
+    />;
   }
 
   return (
@@ -113,8 +111,14 @@ const AdminDashboard: React.FC = () => {
             userProfiles={userProfiles}
             loading={loading}
             usersLoading={usersLoading}
-            loadAllComplaints={loadAllComplaints}
-            loadAllRequests={loadAllRequests}
+            loadAllComplaints={async () => {
+              const complaints = await fetchAllComplaints();
+              setAllComplaints(complaints);
+            }}
+            loadAllRequests={async () => {
+              const requests = await fetchAllRequests();
+              setAllRequests(requests);
+            }}
             fetchUserProfiles={fetchUserProfiles}
           />
         )}

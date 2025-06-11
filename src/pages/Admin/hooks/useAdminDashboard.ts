@@ -4,10 +4,13 @@
 import { useComplaints } from "./useComplaints";
 import { useServiceRequests } from "./useServiceRequests";
 import { useUserProfiles } from "./useUserProfiles";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 export type { Complaint, ServiceRequest, UserProfile, ComplaintResponse } from "./types";
 
 export const useAdminDashboard = () => {
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   const { 
     recentComplaints,
     loading: complaintsLoading,
@@ -33,20 +36,58 @@ export const useAdminDashboard = () => {
 
   // Fetch data when the component is mounted
   useEffect(() => {
-    fetchDashboardData();
+    let isMounted = true;
+    
+    const initializeDashboard = async () => {
+      try {
+        setError(null);
+        console.log("Initializing dashboard...");
+        
+        // Fetch only essential data first
+        await Promise.race([
+          fetchDashboardData(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 10000)
+          )
+        ]);
+        
+        if (isMounted) {
+          console.log("Dashboard initialized successfully");
+        }
+      } catch (error) {
+        console.error("Error initializing dashboard:", error);
+        if (isMounted) {
+          setError("Gagal memuat data dashboard");
+        }
+      } finally {
+        if (isMounted) {
+          setIsInitialLoading(false);
+        }
+      }
+    };
+
+    initializeDashboard();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const fetchDashboardData = async () => {
     try {
-      console.log("Fetching all dashboard data...");
-      await Promise.all([
+      console.log("Fetching dashboard data...");
+      
+      // Fetch data in parallel but with timeout
+      const promises = [
         fetchRecentComplaints(),
-        fetchRecentRequests(),
-        fetchUserProfiles()
-      ]);
+        fetchRecentRequests()
+      ];
+      
+      await Promise.allSettled(promises);
       console.log("Dashboard data fetched successfully");
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
+      throw error;
     }
   };
 
@@ -68,7 +109,9 @@ export const useAdminDashboard = () => {
     fetchUserProfiles,
 
     // General
-    loading: complaintsLoading || requestsLoading || usersLoading,
+    loading: complaintsLoading || requestsLoading,
+    isInitialLoading,
+    error,
     fetchDashboardData,
   };
 };
