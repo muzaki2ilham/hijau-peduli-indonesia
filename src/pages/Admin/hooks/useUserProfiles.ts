@@ -15,7 +15,8 @@ export const useUserProfiles = () => {
       // 1. Ambil semua profil
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('*');
+        .select('*')
+        .order('created_at', { ascending: false });
 
       if (profilesError) {
         console.error("Error mengambil profil:", profilesError);
@@ -42,64 +43,42 @@ export const useUserProfiles = () => {
         rolesMap.set(role.user_id, role.role);
       });
       
-      // 3. Ambil email pengguna melalui fungsi edge
+      // 3. Ambil semua pengguna dari auth.users melalui admin API
       try {
-        // Panggil fungsi edge untuk mendapatkan email
-        const { data: emailUsers, error: emailsError } = await supabase.functions.invoke('get_all_users_email');
+        const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
         
-        if (emailsError) {
-          throw emailsError;
+        if (authError) {
+          console.error("Error mengambil data auth users:", authError);
+          throw authError;
         }
         
-        if (!emailUsers) {
-          throw new Error('Tidak ada data email yang dikembalikan');
-        }
-        
-        console.log("Email pengguna diambil:", emailUsers.length);
-        
-        // Buat map untuk email pengguna
-        const emailsMap = new Map();
-        emailUsers.forEach((user: {id: string, email: string}) => {
-          emailsMap.set(user.id, user.email);
-        });
+        console.log("Auth users diambil:", authUsers.users?.length || 0);
         
         // 4. Gabungkan semua data
-        const combinedProfiles: UserProfile[] = (profiles || []).map((profile: any) => {
+        const combinedProfiles: UserProfile[] = authUsers.users.map((authUser: any) => {
+          const profile = profiles?.find(p => p.id === authUser.id);
+          
           return {
-            id: profile.id || '',
-            username: profile.username || 'Tanpa nama',
-            email: emailsMap.get(profile.id) || profile.email || profile.username || 'Email tidak tersedia',
-            role: rolesMap.get(profile.id) || 'user',
-            created_at: profile.created_at || new Date().toISOString()
+            id: authUser.id,
+            username: profile?.username || authUser.email?.split('@')[0] || 'Pengguna Baru',
+            email: authUser.email || 'Email tidak tersedia',
+            role: rolesMap.get(authUser.id) || 'user',
+            created_at: authUser.created_at || profile?.created_at || new Date().toISOString()
           };
-        });
-
-        // 5. Cek apakah semua id dari emailUsers ada di profiles
-        // Jika tidak, tambahkan pengguna yang tidak ada ke combinedProfiles
-        emailUsers.forEach((user: {id: string, email: string}) => {
-          const exists = combinedProfiles.some(profile => profile.id === user.id);
-          if (!exists) {
-            combinedProfiles.push({
-              id: user.id,
-              username: user.email.split('@')[0] || 'Pengguna Baru',
-              email: user.email,
-              role: rolesMap.get(user.id) || 'user',
-              created_at: new Date().toISOString()
-            });
-          }
         });
 
         console.log("Total profil gabungan:", combinedProfiles.length);
         setUserProfiles(combinedProfiles);
-      } catch (emailError: any) {
-        console.error('Error dengan pengambilan email:', emailError.message || emailError);
         
-        // Fallback untuk menampilkan profil tanpa email
+      } catch (authError: any) {
+        console.error('Error dengan pengambilan auth users, menggunakan fallback:', authError.message || authError);
+        
+        // Fallback: gunakan hanya data profiles yang ada
         const fallbackProfiles: UserProfile[] = (profiles || []).map((profile: any) => {
           return {
             id: profile.id || '',
             username: profile.username || 'Tanpa nama',
-            email: profile.email || profile.username || 'Email tidak tersedia',
+            email: profile.username || 'Email tidak tersedia',
             role: rolesMap.get(profile.id) || 'user',
             created_at: profile.created_at || new Date().toISOString()
           };
@@ -109,7 +88,6 @@ export const useUserProfiles = () => {
       }
     } catch (error: any) {
       console.error('Error mengambil profil pengguna:', error.message || error);
-      // Set array kosong untuk mencegah error undefined
       setUserProfiles([]);
     } finally {
       setLoading(false);

@@ -5,11 +5,13 @@ import { useComplaints } from "./useComplaints";
 import { useServiceRequests } from "./useServiceRequests";
 import { useUserProfiles } from "./useUserProfiles";
 import { useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 export type { Complaint, ServiceRequest, UserProfile, ComplaintResponse } from "./types";
 
 export const useAdminDashboard = () => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
   
   const { 
     recentComplaints,
@@ -37,31 +39,48 @@ export const useAdminDashboard = () => {
   // Fetch data when the component is mounted
   useEffect(() => {
     let isMounted = true;
+    let timeoutId: number;
     
     const initializeDashboard = async () => {
       try {
         setError(null);
         console.log("Initializing dashboard...");
         
-        // Fetch only essential data first
-        await Promise.race([
-          fetchDashboardData(),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 10000)
-          )
-        ]);
+        // Set a timeout to prevent infinite loading
+        timeoutId = window.setTimeout(() => {
+          if (isMounted && isInitialLoading) {
+            console.error("Dashboard initialization timed out");
+            setError("Waktu pengambilan data habis. Silakan refresh halaman.");
+            setIsInitialLoading(false);
+            toast({
+              title: "Terjadi kesalahan",
+              description: "Timeout saat memuat data dashboard. Silakan coba lagi.",
+              variant: "destructive"
+            });
+          }
+        }, 15000); // 15 second timeout
+        
+        // Fetch essential data
+        await fetchDashboardData();
         
         if (isMounted) {
           console.log("Dashboard initialized successfully");
+          setIsInitialLoading(false);
         }
       } catch (error) {
         console.error("Error initializing dashboard:", error);
         if (isMounted) {
-          setError("Gagal memuat data dashboard");
+          setError("Gagal memuat data dashboard. Silakan coba lagi.");
+          setIsInitialLoading(false);
+          toast({
+            title: "Terjadi kesalahan",
+            description: "Gagal memuat data dashboard",
+            variant: "destructive"
+          });
         }
       } finally {
-        if (isMounted) {
-          setIsInitialLoading(false);
+        if (timeoutId) {
+          window.clearTimeout(timeoutId);
         }
       }
     };
@@ -70,6 +89,9 @@ export const useAdminDashboard = () => {
     
     return () => {
       isMounted = false;
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
     };
   }, []);
 
@@ -77,14 +99,26 @@ export const useAdminDashboard = () => {
     try {
       console.log("Fetching dashboard data...");
       
-      // Fetch data in parallel but with timeout
-      const promises = [
-        fetchRecentComplaints(),
-        fetchRecentRequests()
-      ];
+      // Fetch data in parallel with individual timeouts
+      await Promise.allSettled([
+        Promise.race([
+          fetchRecentComplaints(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Complaints fetch timeout')), 8000)
+          )
+        ]),
+        Promise.race([
+          fetchRecentRequests(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Requests fetch timeout')), 8000)
+          )
+        ])
+      ]);
       
-      await Promise.allSettled(promises);
       console.log("Dashboard data fetched successfully");
+      
+      // Also try to fetch user profiles but don't wait for it
+      fetchUserProfiles().catch(err => console.error("Error fetching user profiles:", err));
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
       throw error;

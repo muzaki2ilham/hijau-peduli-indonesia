@@ -1,12 +1,33 @@
+
 import { TreeDeciduous, Leaf, Recycle, Info, BookOpen, Image, Phone } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import React, { useState, useEffect } from "react";
+import { useGalleryItems } from "@/pages/Admin/hooks/useGalleryItems";
+import { useBlogPosts } from "@/pages/Admin/hooks/useBlogPosts";
+import { usePrograms } from "@/pages/Admin/hooks/usePrograms";
 
 const Index = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { galleryItems, loading: galleryLoading } = useGalleryItems();
+  const { blogPosts, loading: blogLoading } = useBlogPosts();
+  const { programs, loading: programsLoading } = usePrograms();
+  
+  // Take just a few recent items for the homepage
+  const recentPhotos = galleryItems
+    .filter(item => item.type === 'photo')
+    .slice(0, 3);
+  
+  const recentPosts = blogPosts
+    .filter(post => post.published)
+    .slice(0, 2);
+    
+  const activePrograms = programs
+    .filter(program => program.status === 'active')
+    .slice(0, 3);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100">
@@ -71,6 +92,34 @@ const Index = () => {
             />
           </div>
         </div>
+
+        {/* Featured Content Section */}
+        {!galleryLoading && recentPhotos.length > 0 && (
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md mb-8">
+            <h2 className="text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
+              <Image className="h-5 w-5" /> Galeri Terbaru
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {recentPhotos.map((photo) => (
+                <div key={photo.id} className="relative h-48 overflow-hidden rounded-md group">
+                  <img 
+                    src={photo.url} 
+                    alt={photo.title}
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white p-2">
+                    <h3 className="text-sm font-medium truncate">{photo.title}</h3>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 text-center">
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/gallery">Lihat Semua Galeri</Link>
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* About Section */}
         <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md">

@@ -1,11 +1,11 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Image, Play, Loader2 } from "lucide-react";
 import GalleryHeader from "@/components/gallery/GalleryHeader";
 import PhotoGrid from "@/components/gallery/PhotoGrid";
 import VideoGrid from "@/components/gallery/VideoGrid";
-import { supabase } from "@/integrations/supabase/client";
+import { useGalleryItems } from "@/pages/Admin/hooks/useGalleryItems";
 
 interface Photo {
   id: number;
@@ -25,57 +25,8 @@ interface Video {
 
 const Gallery = () => {
   const [filter, setFilter] = useState("all");
-  const [photos, setPhotos] = useState<Photo[]>([]);
-  const [videos, setVideos] = useState<Video[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { galleryItems, loading } = useGalleryItems();
   
-  useEffect(() => {
-    fetchGalleryItems();
-  }, []);
-
-  const fetchGalleryItems = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('gallery_items')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching gallery items:', error);
-        return;
-      }
-
-      if (data) {
-        const photoData: Photo[] = data
-          .filter(item => item.type === 'photo')
-          .map(item => ({
-            id: parseInt(item.id),
-            title: item.title,
-            category: item.category,
-            date: item.date || new Date(item.created_at).toLocaleDateString('id-ID'),
-            imageUrl: item.url
-          }));
-
-        const videoData: Video[] = data
-          .filter(item => item.type === 'video')
-          .map(item => ({
-            id: parseInt(item.id),
-            title: item.title,
-            category: item.category,
-            duration: item.duration || '0:00',
-            thumbnailUrl: item.thumbnail_url || item.url
-          }));
-
-        setPhotos(photoData);
-        setVideos(videoData);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 flex items-center justify-center">
@@ -83,6 +34,27 @@ const Gallery = () => {
       </div>
     );
   }
+
+  // Convert gallery items to expected format
+  const photos: Photo[] = galleryItems
+    .filter(item => item.type === 'photo')
+    .map(item => ({
+      id: parseInt(item.id),
+      title: item.title,
+      category: item.category,
+      date: item.date || new Date(item.created_at).toLocaleDateString('id-ID'),
+      imageUrl: item.url
+    }));
+
+  const videos: Video[] = galleryItems
+    .filter(item => item.type === 'video')
+    .map(item => ({
+      id: parseInt(item.id),
+      title: item.title,
+      category: item.category,
+      duration: item.duration || '0:00',
+      thumbnailUrl: item.thumbnail_url || item.url
+    }));
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 p-4 md:p-8">
