@@ -4,8 +4,31 @@ import { dummyComplaints } from "@/data/dummyComplaints";
 import { dummyServiceRequests } from "@/data/dummyServiceRequests";
 import { dummyUserProfiles } from "@/data/dummyUsers";
 
+export interface Complaint {
+  id: string;
+  user_id?: string;
+  name: string;
+  email: string;
+  location: string;
+  complaint_type: string;
+  description: string;
+  status: 'pending' | 'read' | 'in_progress' | 'resolved' | 'responded';
+  attachments?: string[];
+  admin_response?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ComplaintResponse {
+  id: string;
+  complaint_id: string;
+  response_text: string;
+  admin_name: string;
+  created_at: string;
+}
+
 export const useAdminDashboard = () => {
-  const [recentComplaints, setRecentComplaints] = useState<any[]>([]);
+  const [recentComplaints, setRecentComplaints] = useState<Complaint[]>([]);
   const [recentRequests, setRecentRequests] = useState<any[]>([]);
   const [userProfiles, setUserProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,7 +41,6 @@ export const useAdminDashboard = () => {
       setLoading(true);
       setError(null);
       
-      // Simulasi loading dan ambil data terbaru (5 terakhir)
       setTimeout(() => {
         const sortedComplaints = [...dummyComplaints]
           .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -45,7 +67,6 @@ export const useAdminDashboard = () => {
     try {
       setUsersLoading(true);
       
-      // Simulasi loading
       setTimeout(() => {
         setUserProfiles(dummyUserProfiles);
         setUsersLoading(false);
@@ -56,7 +77,7 @@ export const useAdminDashboard = () => {
     }
   }, []);
 
-  const fetchAllComplaints = useCallback(async () => {
+  const fetchAllComplaints = useCallback(async (): Promise<Complaint[]> => {
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve(dummyComplaints);
@@ -68,6 +89,33 @@ export const useAdminDashboard = () => {
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve(dummyServiceRequests);
+      }, 300);
+    });
+  }, []);
+
+  const updateComplaintStatus = useCallback(async (id: string, status: string): Promise<boolean> => {
+    // Mock update - just return success
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(true);
+      }, 300);
+    });
+  }, []);
+
+  const respondToComplaint = useCallback(async (id: string, response: string, adminName: string): Promise<boolean> => {
+    // Mock response - just return success
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(true);
+      }, 300);
+    });
+  }, []);
+
+  const fetchComplaintResponses = useCallback(async (complaintId: string): Promise<ComplaintResponse[]> => {
+    // Mock responses - return empty array for now
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve([]);
       }, 300);
     });
   }, []);
@@ -87,6 +135,9 @@ export const useAdminDashboard = () => {
     fetchUserProfiles,
     fetchAllComplaints,
     fetchAllRequests,
-    fetchDashboardData
+    fetchDashboardData,
+    updateComplaintStatus,
+    respondToComplaint,
+    fetchComplaintResponses
   };
 };

@@ -27,8 +27,8 @@ const AdminDashboard: React.FC = () => {
   const { isAdmin, isInitialLoading: authLoading, handleLogout } = useAdminAccess();
   
   const [activeTab, setActiveTab] = useState<string>("dashboard");
-  const [allComplaints, setAllComplaints] = useState([]);
-  const [allRequests, setAllRequests] = useState([]);
+  const [allComplaints, setAllComplaints] = useState<any[]>([]);
+  const [allRequests, setAllRequests] = useState<any[]>([]);
 
   // Handle tab changes with lazy loading
   useEffect(() => {
@@ -39,11 +39,11 @@ const AdminDashboard: React.FC = () => {
         if (activeTab === "complaints" && allComplaints.length === 0) {
           console.log("Loading complaints for tab...");
           const complaints = await fetchAllComplaints();
-          setAllComplaints(complaints);
+          setAllComplaints(complaints as any[]);
         } else if (activeTab === "requests" && allRequests.length === 0) {
           console.log("Loading requests for tab...");
           const requests = await fetchAllRequests();
-          setAllRequests(requests);
+          setAllRequests(requests as any[]);
         } else if (activeTab === "users" && userProfiles.length === 0) {
           console.log("Loading users for tab...");
           await fetchUserProfiles();
@@ -113,11 +113,11 @@ const AdminDashboard: React.FC = () => {
             usersLoading={usersLoading}
             loadAllComplaints={async () => {
               const complaints = await fetchAllComplaints();
-              setAllComplaints(complaints);
+              setAllComplaints(complaints as any[]);
             }}
             loadAllRequests={async () => {
               const requests = await fetchAllRequests();
-              setAllRequests(requests);
+              setAllRequests(requests as any[]);
             }}
             fetchUserProfiles={fetchUserProfiles}
           />
