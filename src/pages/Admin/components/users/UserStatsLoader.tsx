@@ -1,7 +1,8 @@
 
 import { useEffect, useState } from 'react';
-import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { dummyComplaints } from "@/data/dummyComplaints";
+import { dummyServiceRequests } from "@/data/dummyServiceRequests";
 
 interface UserStatsLoaderProps {
   userId: string;
@@ -16,19 +17,13 @@ export const UserStatsLoader = ({ userId, type }: UserStatsLoaderProps) => {
     const fetchStats = async () => {
       setLoading(true);
       try {
-        const tableName = type === 'complaints' ? 'complaints' : 'service_requests';
+        // Simulasi delay untuk loading
+        await new Promise(resolve => setTimeout(resolve, 300));
         
-        const { data, error } = await supabase
-          .from(tableName)
-          .select('id') // Only select the id field to improve performance
-          .eq('user_id', userId);
-
-        if (error) {
-          console.error(`Error fetching ${type} stats:`, error);
-          setCount(0);
-        } else {
-          setCount(data?.length || 0);
-        }
+        // Hitung berdasarkan data dummy
+        // Karena dummy data tidak memiliki user_id yang sesuai, kita buat simulasi
+        const randomCount = Math.floor(Math.random() * 5); // 0-4 untuk simulasi
+        setCount(randomCount);
       } catch (error) {
         console.error(`Error in ${type} stats:`, error);
         setCount(0);
