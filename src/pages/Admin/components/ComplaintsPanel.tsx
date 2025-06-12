@@ -67,7 +67,7 @@ const ComplaintsPanel: React.FC<ComplaintsPanelProps> = ({ complaints, loading, 
     setResponses(complaintResponses);
   };
 
-  const handleUpdateStatus = async (id: string, status: string) => {
+  const handleUpdateStatus = async (id: string, status: Complaint['status']) => {
     setUpdateLoading(true);
     try {
       const success = await updateComplaintStatus(id, status);
