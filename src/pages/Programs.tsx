@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { usePrograms } from "@/pages/Admin/hooks/usePrograms";
 
 const Programs = () => {
-  // Mengambil data program yang telah ditambahkan admin dari database
   const { programs, loading } = usePrograms();
 
   if (loading) {

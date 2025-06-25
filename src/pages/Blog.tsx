@@ -9,7 +9,6 @@ import { useBlogPosts } from "@/pages/Admin/hooks/useBlogPosts";
 import { BlogPost as ComponentBlogPost } from "@/components/blog/FeaturedPost";
 
 const Blog = () => {
-  // Mengambil data blog yang telah ditambahkan admin dari database
   const { blogPosts, loading } = useBlogPosts();
 
   if (loading) {

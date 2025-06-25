@@ -1,57 +1,29 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Video, FileText, Download } from "lucide-react";
+import { BookOpen, Video, FileText, Download, Clock, User, Calendar, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
+import { useEducationContent } from "@/pages/Admin/hooks/useEducationContent";
+import { useGalleryItems } from "@/pages/Admin/hooks/useGalleryItems";
 
 const Education = () => {
-  const articles = [
-    {
-      id: 1,
-      title: "Cara Mudah Mengelola Sampah Rumah Tangga",
-      description: "Panduan praktis untuk mengelola sampah rumah tangga dan mengubahnya menjadi kompos.",
-      category: "Pengelolaan Sampah",
-      type: "article",
-      imageUrl: "https://via.placeholder.com/300",
-    },
-    {
-      id: 2,
-      title: "Mengenal Perubahan Iklim dan Dampaknya",
-      description: "Artikel informatif tentang perubahan iklim, penyebab, dan dampaknya terhadap lingkungan.",
-      category: "Perubahan Iklim",
-      type: "article",
-      imageUrl: "https://via.placeholder.com/300",
-    },
-    {
-      id: 3,
-      title: "Konservasi Air: Mengapa Penting?",
-      description: "Pentingnya konservasi air dan cara-cara sederhana untuk menghemat penggunaan air sehari-hari.",
-      category: "Konservasi Air",
-      type: "article",
-      imageUrl: "https://via.placeholder.com/300",
-    },
-  ];
+  const { educationContent, loading: educationLoading } = useEducationContent();
+  const { galleryItems, loading: galleryLoading } = useGalleryItems();
 
-  const videos = [
-    {
-      id: 1,
-      title: "Tutorial Membuat Kompos dari Sampah Dapur",
-      description: "Video tutorial langkah demi langkah untuk membuat kompos dari sampah organik dapur.",
-      duration: "10:25",
-      type: "video",
-      thumbnailUrl: "https://via.placeholder.com/300",
-    },
-    {
-      id: 2,
-      title: "Dokumenter: Hutan Indonesia yang Terancam",
-      description: "Film dokumenter tentang kondisi hutan Indonesia dan ancaman deforestasi.",
-      duration: "25:18",
-      type: "video",
-      thumbnailUrl: "https://via.placeholder.com/300",
-    },
-  ];
+  if (educationLoading || galleryLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+      </div>
+    );
+  }
 
+  // Filter content by type
+  const articles = educationContent.filter(content => content.type === 'article');
+  const videos = galleryItems.filter(item => item.type === 'video');
+  
+  // Mock resources for download section (could be expanded to use real data later)
   const resources = [
     {
       id: 1,
@@ -62,7 +34,7 @@ const Education = () => {
     },
     {
       id: 2,
-      title: "Infografis Dampak Plastik pada Laut",
+      title: "Infografis Dampak Plastik pada Laut", 
       description: "Infografis yang menjelaskan dampak penggunaan plastik terhadap ekosistem laut.",
       type: "infographic",
       fileSize: "1.8 MB",
@@ -100,54 +72,87 @@ const Education = () => {
           </TabsList>
           
           <TabsContent value="articles">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {articles.map((article) => (
-                <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="h-40 bg-gray-200">
-                    <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover" />
-                  </div>
-                  <CardHeader>
-                    <CardTitle className="text-lg text-green-800">{article.title}</CardTitle>
-                    <CardDescription>{article.category}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-600 mb-4">{article.description}</p>
-                    <Button variant="outline" className="text-green-600 hover:bg-green-50" asChild>
-                      <Link to={`/education/articles/${article.id}`}>Baca Selengkapnya</Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            {articles.length === 0 ? (
+              <div className="text-center py-12">
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">Belum ada artikel edukasi tersedia</h3>
+                <p className="text-gray-500">Artikel akan segera hadir. Silakan kembali lagi nanti.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {articles.map((article) => (
+                  <Card key={article.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="h-40 bg-gray-200">
+                      <img 
+                        src={article.image_url || '/placeholder.svg'} 
+                        alt={article.title} 
+                        className="w-full h-full object-cover" 
+                      />
+                    </div>
+                    <CardHeader>
+                      <CardTitle className="text-lg text-green-800">{article.title}</CardTitle>
+                      <CardDescription>{article.category}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-600 mb-4">{article.description}</p>
+                      <div className="flex items-center text-xs text-gray-500 mb-3">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        <span>{new Date(article.created_at).toLocaleDateString('id-ID')}</span>
+                      </div>
+                      <Button variant="outline" className="text-green-600 hover:bg-green-50" asChild>
+                        <Link to={`/education/articles/${article.id}`}>Baca Selengkapnya</Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="videos">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {videos.map((video) => (
-                <Card key={video.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="relative h-48 bg-gray-200">
-                    <img src={video.thumbnailUrl} alt={video.title} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="bg-white/80 rounded-full p-3">
-                        <Video className="h-6 w-6 text-green-600" />
+            {videos.length === 0 ? (
+              <div className="text-center py-12">
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">Belum ada video edukasi tersedia</h3>
+                <p className="text-gray-500">Video akan segera hadir. Silakan kembali lagi nanti.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {videos.map((video) => (
+                  <Card key={video.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="relative h-48 bg-gray-200">
+                      <img 
+                        src={video.thumbnail_url || video.url || '/placeholder.svg'} 
+                        alt={video.title} 
+                        className="w-full h-full object-cover" 
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="bg-white/80 rounded-full p-3">
+                          <Video className="h-6 w-6 text-green-600" />
+                        </div>
                       </div>
+                      {video.duration && (
+                        <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 text-xs rounded">
+                          {video.duration}
+                        </div>
+                      )}
                     </div>
-                    <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 text-xs rounded">
-                      {video.duration}
-                    </div>
-                  </div>
-                  <CardHeader>
-                    <CardTitle className="text-lg text-green-800">{video.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-600 mb-4">{video.description}</p>
-                    <Button className="bg-green-600 hover:bg-green-700" asChild>
-                      <Link to={`/education/videos/${video.id}`}>Tonton Video</Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    <CardHeader>
+                      <CardTitle className="text-lg text-green-800">{video.title}</CardTitle>
+                      <CardDescription>{video.category}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-600 mb-4">{video.description}</p>
+                      <div className="flex items-center text-xs text-gray-500 mb-3">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        <span>{video.date || new Date(video.created_at).toLocaleDateString('id-ID')}</span>
+                      </div>
+                      <Button className="bg-green-600 hover:bg-green-700" asChild>
+                        <Link to={`/education/videos/${video.id}`}>Tonton Video</Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="resources">
