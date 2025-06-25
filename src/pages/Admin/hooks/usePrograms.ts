@@ -27,7 +27,14 @@ export const usePrograms = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPrograms(data || []);
+      
+      // Transform data to match interface types
+      const transformedData: Program[] = data?.map(program => ({
+        ...program,
+        status: program.status as Program['status']
+      })) || [];
+      
+      setPrograms(transformedData);
     } catch (error) {
       console.error('Error fetching programs:', error);
     } finally {
@@ -44,7 +51,11 @@ export const usePrograms = () => {
 
       if (error) throw error;
       if (data) {
-        setPrograms(prev => [data[0], ...prev]);
+        const transformedProgram: Program = {
+          ...data[0],
+          status: data[0].status as Program['status']
+        };
+        setPrograms(prev => [transformedProgram, ...prev]);
       }
       return true;
     } catch (error) {
@@ -63,7 +74,11 @@ export const usePrograms = () => {
 
       if (error) throw error;
       if (data) {
-        setPrograms(prev => prev.map(program => program.id === id ? data[0] : program));
+        const transformedProgram: Program = {
+          ...data[0],
+          status: data[0].status as Program['status']
+        };
+        setPrograms(prev => prev.map(program => program.id === id ? transformedProgram : program));
       }
       return true;
     } catch (error) {

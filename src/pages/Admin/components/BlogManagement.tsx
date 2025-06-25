@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
@@ -10,11 +9,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Loader2, Plus, Pencil, Trash2, Image } from "lucide-react";
 import { useBlogPosts, BlogPost } from '../hooks/useBlogPosts';
-import { useGalleryItems } from '../hooks/useGalleryItems';
 
 const BlogManagement: React.FC = () => {
-  const { blogPosts, loading, fetchBlogPosts, createBlogPost, updateBlogPost, deleteBlogPost } = useBlogPosts();
-  const { uploadImage } = useGalleryItems();
+  const { blogPosts, loading, fetchBlogPosts, createBlogPost, updateBlogPost, deleteBlogPost, uploadImage } = useBlogPosts();
   const [openDialog, setOpenDialog] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
@@ -70,7 +67,7 @@ const BlogManagement: React.FC = () => {
       let imageUrl = formData.image_url;
       
       if (imageFile) {
-        const uploadedUrl = await uploadImage(imageFile, 'blog');
+        const uploadedUrl = await uploadImage(imageFile);
         if (uploadedUrl) {
           imageUrl = uploadedUrl;
         }

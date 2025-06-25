@@ -29,7 +29,14 @@ export const useGalleryItems = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setGalleryItems(data || []);
+      
+      // Transform data to match interface types
+      const transformedData: GalleryItem[] = data?.map(item => ({
+        ...item,
+        type: item.type as GalleryItem['type']
+      })) || [];
+      
+      setGalleryItems(transformedData);
     } catch (error) {
       console.error('Error fetching gallery items:', error);
     } finally {
@@ -46,7 +53,11 @@ export const useGalleryItems = () => {
 
       if (error) throw error;
       if (data) {
-        setGalleryItems(prev => [data[0], ...prev]);
+        const transformedItem: GalleryItem = {
+          ...data[0],
+          type: data[0].type as GalleryItem['type']
+        };
+        setGalleryItems(prev => [transformedItem, ...prev]);
       }
       return true;
     } catch (error) {
@@ -65,7 +76,11 @@ export const useGalleryItems = () => {
 
       if (error) throw error;
       if (data) {
-        setGalleryItems(prev => prev.map(item => item.id === id ? data[0] : item));
+        const transformedItem: GalleryItem = {
+          ...data[0],
+          type: data[0].type as GalleryItem['type']
+        };
+        setGalleryItems(prev => prev.map(item => item.id === id ? transformedItem : item));
       }
       return true;
     } catch (error) {

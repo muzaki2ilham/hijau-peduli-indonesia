@@ -38,6 +38,7 @@ export interface ServiceRequest {
   status: 'pending' | 'approved' | 'in_review' | 'completed';
   attachments?: string[];
   created_at: string;
+  updated_at: string;
 }
 
 export interface UserProfile {
@@ -62,26 +63,40 @@ export const useAdminDashboard = () => {
       setLoading(true);
       setError(null);
       
-      // Fetch recent complaints
+      // Fetch recent complaints with updated_at field
       const { data: complaintsData, error: complaintsError } = await supabase
         .from('complaints')
-        .select('*')
+        .select('*, updated_at:created_at')
         .order('created_at', { ascending: false })
         .limit(5);
 
       if (complaintsError) throw complaintsError;
 
-      // Fetch recent service requests
+      // Fetch recent service requests with updated_at field
       const { data: requestsData, error: requestsError } = await supabase
         .from('service_requests')
-        .select('*')
+        .select('*, updated_at:created_at')
         .order('created_at', { ascending: false })
         .limit(5);
 
       if (requestsError) throw requestsError;
 
-      setRecentComplaints(complaintsData || []);
-      setRecentRequests(requestsData || []);
+      // Transform complaints data to match interface
+      const transformedComplaints: Complaint[] = complaintsData?.map(complaint => ({
+        ...complaint,
+        status: complaint.status as Complaint['status'],
+        updated_at: complaint.updated_at || complaint.created_at
+      })) || [];
+
+      // Transform requests data to match interface
+      const transformedRequests: ServiceRequest[] = requestsData?.map(request => ({
+        ...request,
+        status: request.status as ServiceRequest['status'],
+        updated_at: request.updated_at || request.created_at
+      })) || [];
+
+      setRecentComplaints(transformedComplaints);
+      setRecentRequests(transformedRequests);
       setLoading(false);
       setIsInitialLoading(false);
     } catch (err: any) {
@@ -130,11 +145,16 @@ export const useAdminDashboard = () => {
     try {
       const { data, error } = await supabase
         .from('complaints')
-        .select('*')
+        .select('*, updated_at:created_at')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      return data?.map(complaint => ({
+        ...complaint,
+        status: complaint.status as Complaint['status'],
+        updated_at: complaint.updated_at || complaint.created_at
+      })) || [];
     } catch (err: any) {
       console.error('Error fetching all complaints:', err);
       return [];
@@ -145,11 +165,16 @@ export const useAdminDashboard = () => {
     try {
       const { data, error } = await supabase
         .from('service_requests')
-        .select('*')
+        .select('*, updated_at:created_at')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      return data?.map(request => ({
+        ...request,
+        status: request.status as ServiceRequest['status'],
+        updated_at: request.updated_at || request.created_at
+      })) || [];
     } catch (err: any) {
       console.error('Error fetching all requests:', err);
       return [];

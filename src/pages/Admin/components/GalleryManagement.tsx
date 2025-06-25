@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
@@ -88,14 +87,14 @@ const GalleryManagement: React.FC = () => {
       let thumbnailUrl = formData.thumbnail_url;
       
       if (formData.type === 'photo' && imageFile) {
-        const uploadedUrl = await uploadImage(imageFile, 'gallery');
+        const uploadedUrl = await uploadImage(imageFile);
         if (uploadedUrl) {
           imageUrl = uploadedUrl;
         }
       }
       
       if (formData.type === 'video' && thumbnailFile) {
-        const uploadedUrl = await uploadImage(thumbnailFile, 'gallery/thumbnails');
+        const uploadedUrl = await uploadImage(thumbnailFile);
         if (uploadedUrl) {
           thumbnailUrl = uploadedUrl;
         }
