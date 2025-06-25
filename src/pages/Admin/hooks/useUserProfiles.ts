@@ -18,27 +18,50 @@ export const useUserProfiles = () => {
     try {
       setLoading(true);
       
-      // Fetch profiles with user roles
+      // First, get all profiles
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          username,
-          created_at,
-          user_roles(role)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (profilesError) throw profilesError;
 
-      // Transform data to include email and role
-      const transformedProfiles = profilesData?.map(profile => ({
-        id: profile.id,
-        username: profile.username || 'Unknown',
-        email: profile.username || 'unknown@email.com', // Using username as email fallback
-        role: (profile.user_roles as any)?.[0]?.role || 'user',
-        created_at: profile.created_at
-      })) || [];
+      // Then, get user roles separately
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('*');
+
+      if (rolesError) {
+        console.warn('Could not fetch user roles:', rolesError);
+      }
+
+      // Try to get user emails from the edge function
+      let usersWithEmails: { id: string; email: string }[] = [];
+      try {
+        const { data: emailsData, error: emailsError } = await supabase.functions.invoke('get_all_users_email');
+        if (!emailsError && emailsData) {
+          usersWithEmails = emailsData;
+        }
+      } catch (emailError) {
+        console.warn('Could not fetch user emails:', emailError);
+      }
+
+      // Combine the data
+      const transformedProfiles: UserProfile[] = profilesData?.map(profile => {
+        // Find role for this user
+        const userRole = rolesData?.find(role => role.user_id === profile.id);
+        
+        // Find email for this user
+        const userEmail = usersWithEmails.find(user => user.id === profile.id);
+        
+        return {
+          id: profile.id,
+          username: profile.username || 'Unknown',
+          email: userEmail?.email || profile.username || 'Email not available',
+          role: userRole?.role || 'user',
+          created_at: profile.created_at
+        };
+      }) || [];
 
       setUserProfiles(transformedProfiles);
     } catch (error) {
