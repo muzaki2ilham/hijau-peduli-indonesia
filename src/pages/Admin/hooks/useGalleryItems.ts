@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from "react";
-import { dummyGalleryItems } from "@/data/dummyGalleryItems";
+import { useState, useEffect } from 'react';
+import { supabase } from "@/integrations/supabase/client";
 
 export interface GalleryItem {
   id: string;
@@ -13,6 +13,7 @@ export interface GalleryItem {
   date?: string;
   duration?: string;
   created_at: string;
+  updated_at: string;
 }
 
 export const useGalleryItems = () => {
@@ -20,38 +21,79 @@ export const useGalleryItems = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchGalleryItems = async () => {
-    setLoading(true);
-    setTimeout(() => {
-      setGalleryItems(dummyGalleryItems);
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('gallery_items')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setGalleryItems(data || []);
+    } catch (error) {
+      console.error('Error fetching gallery items:', error);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
-  const createGalleryItem = async (data: Omit<GalleryItem, 'id' | 'created_at'>) => {
-    const newItem: GalleryItem = {
-      ...data,
-      id: Math.random().toString(36).substr(2, 9),
-      created_at: new Date().toISOString()
-    };
-    setGalleryItems(prev => [newItem, ...prev]);
-    return true;
+  const createGalleryItem = async (item: Omit<GalleryItem, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('gallery_items')
+        .insert([item])
+        .select();
+
+      if (error) throw error;
+      if (data) {
+        setGalleryItems(prev => [data[0], ...prev]);
+      }
+      return true;
+    } catch (error) {
+      console.error('Error creating gallery item:', error);
+      return false;
+    }
   };
 
-  const updateGalleryItem = async (id: string, data: Partial<GalleryItem>) => {
-    setGalleryItems(prev => prev.map(item => 
-      item.id === id ? { ...item, ...data } : item
-    ));
-    return true;
+  const updateGalleryItem = async (id: string, updates: Partial<GalleryItem>) => {
+    try {
+      const { data, error } = await supabase
+        .from('gallery_items')
+        .update(updates)
+        .eq('id', id)
+        .select();
+
+      if (error) throw error;
+      if (data) {
+        setGalleryItems(prev => prev.map(item => item.id === id ? data[0] : item));
+      }
+      return true;
+    } catch (error) {
+      console.error('Error updating gallery item:', error);
+      return false;
+    }
   };
 
   const deleteGalleryItem = async (id: string) => {
-    setGalleryItems(prev => prev.filter(item => item.id !== id));
-    return true;
+    try {
+      const { error } = await supabase
+        .from('gallery_items')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      setGalleryItems(prev => prev.filter(item => item.id !== id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting gallery item:', error);
+      return false;
+    }
   };
 
-  const uploadImage = async (file: File, category?: string) => {
-    // Mock upload - return a dummy URL
-    return `https://images.unsplash.com/photo-${Math.random().toString(36).substr(2, 9)}?w=800`;
+  const uploadImage = async (file: File): Promise<string | null> => {
+    // Mock implementation - you can implement actual file upload later
+    console.log('Image upload not implemented yet');
+    return null;
   };
 
   useEffect(() => {

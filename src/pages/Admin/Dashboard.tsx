@@ -39,11 +39,11 @@ const AdminDashboard: React.FC = () => {
         if (activeTab === "complaints" && allComplaints.length === 0) {
           console.log("Loading complaints for tab...");
           const complaints = await fetchAllComplaints();
-          setAllComplaints(complaints as any[]);
+          setAllComplaints(complaints);
         } else if (activeTab === "requests" && allRequests.length === 0) {
           console.log("Loading requests for tab...");
           const requests = await fetchAllRequests();
-          setAllRequests(requests as any[]);
+          setAllRequests(requests);
         } else if (activeTab === "users" && userProfiles.length === 0) {
           console.log("Loading users for tab...");
           await fetchUserProfiles();
@@ -113,11 +113,11 @@ const AdminDashboard: React.FC = () => {
             usersLoading={usersLoading}
             loadAllComplaints={async () => {
               const complaints = await fetchAllComplaints();
-              setAllComplaints(complaints as any[]);
+              setAllComplaints(complaints);
             }}
             loadAllRequests={async () => {
               const requests = await fetchAllRequests();
-              setAllRequests(requests as any[]);
+              setAllRequests(requests);
             }}
             fetchUserProfiles={fetchUserProfiles}
           />

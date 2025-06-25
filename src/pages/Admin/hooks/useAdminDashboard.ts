@@ -1,8 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { dummyComplaints } from "@/data/dummyComplaints";
-import { dummyServiceRequests } from "@/data/dummyServiceRequests";
-import { dummyUserProfiles } from "@/data/dummyUsers";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Complaint {
   id: string;
@@ -27,10 +25,33 @@ export interface ComplaintResponse {
   created_at: string;
 }
 
+export interface ServiceRequest {
+  id: string;
+  user_id?: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  service_type: string;
+  description: string;
+  request_date: string;
+  status: 'pending' | 'approved' | 'in_review' | 'completed';
+  attachments?: string[];
+  created_at: string;
+}
+
+export interface UserProfile {
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+  created_at: string;
+}
+
 export const useAdminDashboard = () => {
   const [recentComplaints, setRecentComplaints] = useState<Complaint[]>([]);
-  const [recentRequests, setRecentRequests] = useState<any[]>([]);
-  const [userProfiles, setUserProfiles] = useState<any[]>([]);
+  const [recentRequests, setRecentRequests] = useState<ServiceRequest[]>([]);
+  const [userProfiles, setUserProfiles] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(true);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -41,21 +62,29 @@ export const useAdminDashboard = () => {
       setLoading(true);
       setError(null);
       
-      setTimeout(() => {
-        const sortedComplaints = [...dummyComplaints]
-          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-          .slice(0, 5);
-        
-        const sortedRequests = [...dummyServiceRequests]
-          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-          .slice(0, 5);
-        
-        setRecentComplaints(sortedComplaints);
-        setRecentRequests(sortedRequests);
-        setLoading(false);
-        setIsInitialLoading(false);
-      }, 500);
-    } catch (err) {
+      // Fetch recent complaints
+      const { data: complaintsData, error: complaintsError } = await supabase
+        .from('complaints')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (complaintsError) throw complaintsError;
+
+      // Fetch recent service requests
+      const { data: requestsData, error: requestsError } = await supabase
+        .from('service_requests')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (requestsError) throw requestsError;
+
+      setRecentComplaints(complaintsData || []);
+      setRecentRequests(requestsData || []);
+      setLoading(false);
+      setIsInitialLoading(false);
+    } catch (err: any) {
       console.error('Error fetching dashboard data:', err);
       setError('Gagal memuat data dashboard');
       setLoading(false);
@@ -67,57 +96,122 @@ export const useAdminDashboard = () => {
     try {
       setUsersLoading(true);
       
-      setTimeout(() => {
-        setUserProfiles(dummyUserProfiles);
-        setUsersLoading(false);
-      }, 500);
-    } catch (err) {
+      // Fetch profiles with user roles
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          username,
+          created_at,
+          user_roles(role)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (profilesError) throw profilesError;
+
+      // Transform data to include email and role
+      const transformedProfiles = profilesData?.map(profile => ({
+        id: profile.id,
+        username: profile.username || 'Unknown',
+        email: profile.username || 'unknown@email.com', // Using username as email fallback
+        role: (profile.user_roles as any)?.[0]?.role || 'user',
+        created_at: profile.created_at
+      })) || [];
+
+      setUserProfiles(transformedProfiles);
+      setUsersLoading(false);
+    } catch (err: any) {
       console.error('Error fetching user profiles:', err);
       setUsersLoading(false);
     }
   }, []);
 
   const fetchAllComplaints = useCallback(async (): Promise<Complaint[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(dummyComplaints);
-      }, 300);
-    });
+    try {
+      const { data, error } = await supabase
+        .from('complaints')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (err: any) {
+      console.error('Error fetching all complaints:', err);
+      return [];
+    }
   }, []);
 
-  const fetchAllRequests = useCallback(async () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(dummyServiceRequests);
-      }, 300);
-    });
+  const fetchAllRequests = useCallback(async (): Promise<ServiceRequest[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('service_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (err: any) {
+      console.error('Error fetching all requests:', err);
+      return [];
+    }
   }, []);
 
   const updateComplaintStatus = useCallback(async (id: string, status: string): Promise<boolean> => {
-    // Mock update - just return success
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(true);
-      }, 300);
-    });
+    try {
+      const { error } = await supabase
+        .from('complaints')
+        .update({ status })
+        .eq('id', id);
+
+      if (error) throw error;
+      return true;
+    } catch (err: any) {
+      console.error('Error updating complaint status:', err);
+      return false;
+    }
   }, []);
 
   const respondToComplaint = useCallback(async (id: string, response: string, adminName: string): Promise<boolean> => {
-    // Mock response - just return success
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(true);
-      }, 300);
-    });
+    try {
+      // Insert response
+      const { error: responseError } = await supabase
+        .from('complaint_responses')
+        .insert({
+          complaint_id: id,
+          response_text: response,
+          admin_name: adminName
+        });
+
+      if (responseError) throw responseError;
+
+      // Update complaint status to responded
+      const { error: statusError } = await supabase
+        .from('complaints')
+        .update({ status: 'responded' })
+        .eq('id', id);
+
+      if (statusError) throw statusError;
+      return true;
+    } catch (err: any) {
+      console.error('Error responding to complaint:', err);
+      return false;
+    }
   }, []);
 
   const fetchComplaintResponses = useCallback(async (complaintId: string): Promise<ComplaintResponse[]> => {
-    // Mock responses - return empty array for now
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve([]);
-      }, 300);
-    });
+    try {
+      const { data, error } = await supabase
+        .from('complaint_responses')
+        .select('*')
+        .eq('complaint_id', complaintId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (err: any) {
+      console.error('Error fetching complaint responses:', err);
+      return [];
+    }
   }, []);
 
   useEffect(() => {
