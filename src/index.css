@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,19 +36,12 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -98,4 +92,107 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Tegal Asri Animated Background */
+@keyframes moss-movement {
+  0% {
+    background-position: 0% 0%, 100% 100%, 50% 50%;
+  }
+  33% {
+    background-position: 100% 0%, 0% 100%, 0% 0%;
+  }
+  66% {
+    background-position: 50% 100%, 50% 0%, 100% 50%;
+  }
+  100% {
+    background-position: 0% 0%, 100% 100%, 50% 50%;
+  }
+}
+
+@keyframes organic-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes floating-dots {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  25% {
+    transform: translateY(-10px) translateX(5px);
+  }
+  50% {
+    transform: translateY(-5px) translateX(-3px);
+  }
+  75% {
+    transform: translateY(-15px) translateX(2px);
+  }
+}
+
+.tegal-asri-bg {
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(34, 139, 34, 0.4) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(46, 125, 50, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(27, 94, 32, 0.5) 0%, transparent 50%),
+    linear-gradient(135deg, 
+      rgba(21, 71, 25, 1) 0%, 
+      rgba(27, 94, 32, 1) 25%, 
+      rgba(34, 139, 34, 0.9) 50%, 
+      rgba(46, 125, 50, 0.8) 75%, 
+      rgba(21, 71, 25, 1) 100%
+    );
+  background-size: 300% 300%, 250% 250%, 400% 400%, 100% 100%;
+  animation: moss-movement 20s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.tegal-asri-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(76, 175, 80, 0.1) 0%, transparent 30%),
+    radial-gradient(circle at 90% 80%, rgba(56, 142, 60, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 60% 10%, rgba(102, 187, 106, 0.1) 0%, transparent 35%);
+  background-size: 200% 200%, 180% 180%, 220% 220%;
+  animation: organic-pulse 15s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.tegal-asri-bg::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, rgba(139, 195, 74, 0.3), transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(76, 175, 80, 0.4), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(165, 214, 167, 0.2), transparent),
+    radial-gradient(1px 1px at 130px 80px, rgba(129, 199, 132, 0.3), transparent),
+    radial-gradient(2px 2px at 160px 30px, rgba(102, 187, 106, 0.2), transparent);
+  background-repeat: repeat;
+  background-size: 75px 100px, 60px 90px, 100px 80px, 80px 120px, 90px 110px;
+  animation: floating-dots 25s linear infinite;
+  pointer-events: none;
+}
+
+.moss-texture {
+  background: 
+    linear-gradient(45deg, transparent 30%, rgba(56, 142, 60, 0.1) 50%, transparent 70%),
+    linear-gradient(-45deg, transparent 30%, rgba(76, 175, 80, 0.1) 50%, transparent 70%);
+  background-size: 20px 20px, 15px 15px;
+  animation: organic-pulse 12s ease-in-out infinite reverse;
 }

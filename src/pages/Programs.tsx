@@ -10,8 +10,8 @@ const Programs = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+      <div className="min-h-screen tegal-asri-bg flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-white" />
       </div>
     );
   }
@@ -20,32 +20,36 @@ const Programs = () => {
   const activePrograms = programs.filter(program => program.status === 'active');
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 p-4 md:p-8">
+    <div className="min-h-screen tegal-asri-bg p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-green-800 mb-4">
-            Program Lingkungan Hidup
-          </h1>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Berbagai program dan kegiatan yang dirancang untuk meningkatkan kesadaran dan partisipasi masyarakat dalam menjaga kelestarian lingkungan hidup.
-          </p>
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-8 shadow-lg">
+            <h1 className="text-3xl md:text-4xl font-bold text-green-800 mb-4">
+              Program Lingkungan Hidup
+            </h1>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Berbagai program dan kegiatan yang dirancang untuk meningkatkan kesadaran dan partisipasi masyarakat dalam menjaga kelestarian lingkungan hidup.
+            </p>
+          </div>
         </div>
 
         {activePrograms.length === 0 ? (
           <div className="text-center py-12">
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">Belum ada program aktif tersedia</h3>
-            <p className="text-gray-500">Program akan segera hadir. Silakan kembali lagi nanti.</p>
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-8">
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Belum ada program aktif tersedia</h3>
+              <p className="text-gray-500">Program akan segera hadir. Silakan kembali lagi nanti.</p>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {activePrograms.map((program) => (
-              <Card key={program.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+              <Card key={program.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105 bg-white/90 backdrop-blur-sm border-white/20">
                 {program.image_url && (
                   <div className="h-48 overflow-hidden">
                     <img 
                       src={program.image_url} 
                       alt={program.title}
-                      className="w-full h-full object-cover transition-transform hover:scale-105"
+                      className="w-full h-full object-cover transition-transform hover:scale-110"
                     />
                   </div>
                 )}

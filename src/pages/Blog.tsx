@@ -13,8 +13,8 @@ const Blog = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+      <div className="min-h-screen tegal-asri-bg flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-white" />
       </div>
     );
   }
@@ -65,24 +65,36 @@ const Blog = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 p-4 md:p-8">
+    <div className="min-h-screen tegal-asri-bg p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
-        <BlogHeader />
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-1 mb-8">
+          <BlogHeader />
+        </div>
         
         {publishedPosts.length === 0 ? (
           <div className="text-center py-12">
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">Belum ada artikel tersedia</h3>
-            <p className="text-gray-500">Artikel akan segera hadir. Silakan kembali lagi nanti.</p>
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-8">
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Belum ada artikel tersedia</h3>
+              <p className="text-gray-500">Artikel akan segera hadir. Silakan kembali lagi nanti.</p>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              {featuredPost && <FeaturedPost post={featuredPost} />}
-              <BlogPostList posts={otherPosts} />
+              {featuredPost && (
+                <div className="bg-white/90 backdrop-blur-sm rounded-xl p-1 mb-8 shadow-lg">
+                  <FeaturedPost post={featuredPost} />
+                </div>
+              )}
+              <div className="bg-white/90 backdrop-blur-sm rounded-xl p-1 shadow-lg">
+                <BlogPostList posts={otherPosts} />
+              </div>
             </div>
             
             <div className="lg:col-span-1">
-              <BlogSidebar categories={categories} archives={archives} />
+              <div className="bg-white/90 backdrop-blur-sm rounded-xl p-1 shadow-lg">
+                <BlogSidebar categories={categories} archives={archives} />
+              </div>
             </div>
           </div>
         )}

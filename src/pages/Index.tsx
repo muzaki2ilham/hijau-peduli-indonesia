@@ -30,22 +30,22 @@ const Index = () => {
     .slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100">
+    <div className="min-h-screen tegal-asri-bg">
       {/* Hero Section */}
-      <div className="relative h-[50vh] bg-green-800">
-        <div className="absolute inset-0 bg-black/40 z-0"></div>
+      <div className="relative h-[50vh] bg-gradient-to-b from-black/40 to-black/20">
+        <div className="moss-texture absolute inset-0 z-0"></div>
         <div className="relative z-10 h-full flex flex-col items-center justify-center p-6 text-center">
-          <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
+          <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 drop-shadow-2xl">
             Tegal Asri
           </h1>
-          <p className="text-lg md:text-xl text-white max-w-xl mx-auto mb-8">
+          <p className="text-lg md:text-xl text-white max-w-xl mx-auto mb-8 drop-shadow-lg">
             Bersama menjaga lingkungan untuk masa depan yang lebih baik
           </p>
           <div className="flex gap-4 justify-center">
-            <Button size={isMobile ? "sm" : "default"} className="bg-green-600 hover:bg-green-700 text-white" asChild>
+            <Button size={isMobile ? "sm" : "default"} className="bg-green-600/90 backdrop-blur-sm hover:bg-green-700/90 text-white shadow-lg" asChild>
               <Link to="/programs">Program Kami</Link>
             </Button>
-            <Button size={isMobile ? "sm" : "default"} variant="outline" className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30" asChild>
+            <Button size={isMobile ? "sm" : "default"} variant="outline" className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 border-white/30 shadow-lg" asChild>
               <Link to="/contact">Hubungi Kami</Link>
             </Button>
           </div>
@@ -54,7 +54,7 @@ const Index = () => {
 
       {/* Menu Cards */}
       <div className="max-w-6xl mx-auto p-4 md:p-8 -mt-8 relative z-20">
-        <div className="bg-white rounded-xl shadow-md p-6 mb-8">
+        <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-6 mb-8 border border-white/20">
           <h2 className="text-2xl font-bold text-green-800 mb-6 text-center">
             Layanan Kami
           </h2>
@@ -95,13 +95,13 @@ const Index = () => {
 
         {/* Program Aktif dari Admin */}
         {!programsLoading && activePrograms.length > 0 && (
-          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md mb-8">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg mb-8 border border-white/20">
             <h2 className="text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
               <TreeDeciduous className="h-5 w-5" /> Program Aktif
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {activePrograms.map((program) => (
-                <div key={program.id} className="bg-white rounded-lg p-4 shadow-sm">
+                <div key={program.id} className="bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-sm border border-white/20">
                   {program.image_url && (
                     <img 
                       src={program.image_url} 
@@ -115,7 +115,7 @@ const Index = () => {
               ))}
             </div>
             <div className="mt-4 text-center">
-              <Button variant="outline" size="sm" asChild>
+              <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm border-green-200" asChild>
                 <Link to="/programs">Lihat Semua Program</Link>
               </Button>
             </div>
@@ -124,7 +124,7 @@ const Index = () => {
 
         {/* Galeri Terbaru dari Admin */}
         {!galleryLoading && recentPhotos.length > 0 && (
-          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md mb-8">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg mb-8 border border-white/20">
             <h2 className="text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
               <Image className="h-5 w-5" /> Galeri Terbaru
             </h2>
@@ -143,7 +143,7 @@ const Index = () => {
               ))}
             </div>
             <div className="mt-4 text-center">
-              <Button variant="outline" size="sm" asChild>
+              <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm border-green-200" asChild>
                 <Link to="/gallery">Lihat Semua Galeri</Link>
               </Button>
             </div>
@@ -152,13 +152,13 @@ const Index = () => {
 
         {/* Blog Terbaru dari Admin */}
         {!blogLoading && recentPosts.length > 0 && (
-          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md mb-8">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg mb-8 border border-white/20">
             <h2 className="text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
               <BookOpen className="h-5 w-5" /> Artikel Terbaru
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {recentPosts.map((post) => (
-                <div key={post.id} className="bg-white rounded-lg p-4 shadow-sm">
+                <div key={post.id} className="bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-sm border border-white/20">
                   {post.image_url && (
                     <img 
                       src={post.image_url} 
@@ -176,7 +176,7 @@ const Index = () => {
               ))}
             </div>
             <div className="mt-4 text-center">
-              <Button variant="outline" size="sm" asChild>
+              <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm border-green-200" asChild>
                 <Link to="/blog">Lihat Semua Artikel</Link>
               </Button>
             </div>
@@ -184,7 +184,7 @@ const Index = () => {
         )}
 
         {/* About Section */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
           <h2 className="text-xl font-bold text-green-800 mb-4 flex items-center gap-2">
             <Info className="h-5 w-5" /> Tentang Kami
           </h2>
@@ -193,7 +193,7 @@ const Index = () => {
             Kami bekerja untuk meningkatkan kesadaran masyarakat tentang pentingnya menjaga lingkungan hidup, 
             memberikan edukasi, serta mengembangkan program-program yang berkelanjutan.
           </p>
-          <Button className="mt-4" variant="outline" size={isMobile ? "sm" : "default"} asChild>
+          <Button className="mt-4" variant="outline" size={isMobile ? "sm" : "default"} className="bg-white/80 backdrop-blur-sm border-green-200" asChild>
             <Link to="/about">Pelajari Lebih Lanjut</Link>
           </Button>
         </div>
@@ -204,7 +204,7 @@ const Index = () => {
 
 const MenuCard = ({ icon, title, link }: { icon: React.ReactNode; title: string; link: string }) => (
   <Link to={link}>
-    <Card className="hover:bg-green-50 transition-colors h-full border-green-100">
+    <Card className="hover:bg-green-50/80 backdrop-blur-sm transition-all duration-300 hover:shadow-lg h-full border-green-100/50 hover:scale-105">
       <CardContent className="flex flex-col items-center justify-center p-4 h-full">
         <div className="text-green-600 mb-2">
           {icon}
